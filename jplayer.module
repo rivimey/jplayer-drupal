@@ -1,0 +1,163 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Provides an HTML5-compatible with Flash-fallback audio player.
+ *
+ * This module provides functionality for loading the jPlayer library and
+ * formatters for CCK FileFields.
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function jplayer_menu() {
+  $items = array();
+
+  $items['admin/settings/jplayer'] = array(
+    'title' => 'jPlayer settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('jplayer_settings_form'),
+    'access arguments' => array('administer site configuration'),
+    'description' => 'Configure the settings for the jPlayer module.',
+    'file' => 'includes/jplayer.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function jplayer_theme() {
+  return array(
+    'jplayer_formatter_jplayer_single' => array(
+      'arguments' => array('element' => NULL),
+      'template' => 'theme/jplayer',
+      'file' => 'includes/jplayer.theme.inc',
+    ),
+    'jplayer_formatter_jplayer_playlist' => array(
+      'arguments' => array('element' => NULL),
+      'template' => 'theme/jplayer',
+      'file' => 'includes/jplayer.theme.inc',
+    ),
+    'jplayer_view_playlist' => array(
+      'arguments' => array('view' => NULL, 'items' => NULL),
+      'template' => 'theme/jplayer',
+      'file' => 'includes/jplayer.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implementation of Views' hook_views_api().
+ */
+function jplayer_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'jplayer') .'/includes',
+  );
+}
+
+/**
+ * Implementation of CCK's hook_field_formatter_info().
+ */
+function jplayer_field_formatter_info() {
+  return array(
+    'jplayer_single' => array(
+      'label' => t('jPlayer player'),
+      'field types' => array('filefield', 'audiofield'),
+      'multiple values' => CONTENT_HANDLE_CORE,
+      'description' => t('Display an audio file as an HTML5-compatible with Flash-fallback audio player.'),
+    ),
+    'jplayer_playlist' => array(
+      'label' => t('jPlayer multifile playlist'),
+      'field types' => array('filefield', 'audiofield'),
+      'multiple values' => CONTENT_HANDLE_MULTIPLE,
+      'description' => t('Display multi-value fields as an HTML5-compatible with Flash-fallback audio player.'),
+    ),
+  );
+}
+
+/**
+ * Add the jPlayer library to the page.
+ *
+ * @param $add
+ *   By default this function will add jPlayer to the page JavaScript array
+ *   directly. If wanting to store the jPlayer file as an #attached property,
+ *   set this to FALSE and jplayer_add() will only return the needed array
+ *   suitable for use as an #attached property.
+ */
+function jplayer_add($add = TRUE) {
+  static $added = FALSE;
+
+  $directory = variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
+  $return = FALSE;
+  if (file_exists($directory . '/jquery.jplayer.min.js')) {
+    $filepath = $directory . '/jquery.jplayer.min.js';
+  }
+  elseif (file_exists($directory . '/jquery.jplayer.js')) {
+    $filepath = $directory . '/jquery.jplayer.js';
+  }
+
+  if (isset($filepath)) {
+    $jplayer_js = drupal_get_path('module', 'jplayer') . '/theme/jplayer.js';
+    $jplayer_css = drupal_get_path('module', 'jplayer') . '/theme/jplayer.css';
+    $settings = array('jPlayer' => array(
+      'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
+      'autoPlay' => (int) variable_get('jplayer_autoplay', ''),
+    ));
+    if ($add) {
+      drupal_add_js($filepath);
+      drupal_add_js($jplayer_js);
+      drupal_add_css($jplayer_css);
+      if (!$added) {
+        drupal_add_js($settings, 'setting');
+        $added = TRUE;
+      }
+    }
+    $return = array(
+      'js' => array(
+        array('data' => $filepath),
+        array('data' => $jplayer_js),
+        array('data' => $settings, 'type' => 'setting'),
+      ),
+      'css' => array(
+        array('data' => $jplayer_css),
+      ),
+    );
+  }
+
+  return $return;
+}
+
+/**
+ * Return the version of jQuery UI installed.
+ *
+ * @param $directory
+ *   The directory to check for a jPlayer installation.
+ */
+function jplayer_get_version($directory = NULL) {
+  $version = 0;
+
+  if (!isset($directory)) {
+    $directory = variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
+  }
+
+  if (file_exists($directory . '/jquery.jplayer.min.js')) {
+    $contents = file_get_contents($directory . '/jquery.jplayer.min.js');
+  }
+  elseif (file_exists($directory . '/jquery.jplayer.js')) {
+    $contents = file_get_contents($directory . '/jquery.jplayer.js');
+  }
+
+  $matches = array();
+  preg_match('/Version:?[ ]*([\d.]+)/i', $contents, $matches);
+
+  if (isset($matches[1])) {
+    $version = $matches[1];
+  }
+
+  return $version;
+}
