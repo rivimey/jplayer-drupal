@@ -14,7 +14,7 @@ function template_preprocess_jplayer_formatter_jplayer_single(&$vars) {
   $vars['mode'] = 'single';
   $vars['item'] = array(
     'url' => file_create_url($vars['element']['#item']['filepath']),
-    'label' => isset($vars['element']['#item']['data']['description']) ? $vars['element']['#item']['data']['description'] : $vars['element']['#item']['filename'],
+    'label' => !empty($vars['element']['#item']['data']['description']) ? $vars['element']['#item']['data']['description'] : $vars['element']['#item']['filename'],
   );
   $vars['player_id'] = 'jplayer-' . $vars['element']['#node']->nid . '-' . str_replace('_', '-', $vars['element']['#field_name']) . '-' . $vars['element']['#item']['#delta'];
 }
