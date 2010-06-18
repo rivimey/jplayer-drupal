@@ -66,7 +66,7 @@ Drupal.behaviors.jPlayer = function(context) {
 
     // Actually initialize the player.
     $(player).jPlayer({
-      ready: function() {
+      ready: function() { 
         this.element.jPlayer('setFile', this.element.attr('rel'));
         if (Drupal.settings.jPlayer.autoPlay && !Drupal.jPlayer.active) {
           if (playerType == 'playlist') {
@@ -102,6 +102,7 @@ Drupal.behaviors.jPlayer = function(context) {
         Drupal.jPlayer.next(wrapper, player, playlist, active);
       }
     });
+    $.jPlayer.timeFormat.showHour = true;
   });
 };
 
