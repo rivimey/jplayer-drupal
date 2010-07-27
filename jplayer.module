@@ -102,8 +102,8 @@ function jplayer_add($add = TRUE) {
   }
 
   if (isset($filepath)) {
-    $jplayer_js = drupal_get_path('module', 'jplayer') . '/theme/jplayer.js';
-    $jplayer_css = drupal_get_path('module', 'jplayer') . '/theme/jplayer.css';
+    $jplayer_js = jplayer_get_file_path('jplayer.js');    
+    $jplayer_css = jplayer_get_file_path('jplayer.css'); 
     $settings = array('jPlayer' => array(
       'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
       'autoPlay' => (int) variable_get('jplayer_autoplay', ''),
@@ -130,6 +130,27 @@ function jplayer_add($add = TRUE) {
   }
 
   return $return;
+}
+
+/**
+ * Returns path to the most appropriate file 
+ *
+ * @param $filename
+ *   Name of the file to find
+ */
+function jplayer_get_file_path($filename, $required_files = array()) {
+  $theme_dir = path_to_theme() . '/jplayer/';
+  $found = false;
+  if (file_exists($path = $theme_dir . $filename)) {
+    $found = true;
+    foreach ($required_files as $key => $value) {
+      if (!file_exists($theme_dir . $value)) {
+        $found = false;
+        break;
+      }
+    }
+  }
+  return $found ? $path : drupal_get_path('module', 'jplayer') . '/theme/' . $filename;
 }
 
 /**
