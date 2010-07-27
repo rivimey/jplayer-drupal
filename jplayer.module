@@ -137,9 +137,12 @@ function jplayer_add($add = TRUE) {
  *
  * @param $filename
  *   Name of the file to find
+ * @param $required_files
+ *   Other files required in target folder
  */
 function jplayer_get_file_path($filename, $required_files = array()) {
-  $theme_dir = path_to_theme() . '/jplayer/';
+  global $theme;
+  $theme_dir = drupal_get_path('theme', $theme) . '/jplayer/';
   $found = false;
   if (file_exists($path = $theme_dir . $filename)) {
     $found = true;
@@ -150,7 +153,7 @@ function jplayer_get_file_path($filename, $required_files = array()) {
       }
     }
   }
-  return $found ? $path : drupal_get_path('module', 'jplayer') . '/theme/' . $filename;
+  return $found ? $path : (drupal_get_path('module', 'jplayer') . '/theme/' . $filename);
 }
 
 /**
