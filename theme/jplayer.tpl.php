@@ -6,6 +6,8 @@
  */
 ?>
 
+<?php if (!empty($item)) : ?>
+
 <div id="<?php print $player_id; ?>" class="jplayer"<?php print $mode == 'single' ? ' rel="' . $item['url'] . '"' : ''; ?>></div>
 
 <div class="jp-<?php print $mode; ?>-player">
@@ -49,3 +51,5 @@
     </ul>
   </div>
 </div>
+
+<?php endif; ?>

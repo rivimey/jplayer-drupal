@@ -9,6 +9,9 @@
  * Preprocess function for jplayer.tpl.php when doing a single item.
  */
 function template_preprocess_jplayer_formatter_jplayer_single(&$vars) {
+  if (!$vars['element']['#item']['fid'])
+    return;
+    
   jplayer_add();
 
   $vars['mode'] = 'single';
@@ -23,6 +26,9 @@ function template_preprocess_jplayer_formatter_jplayer_single(&$vars) {
  * Preprocess function for jplayer.tpl.php when using a playlist.
  */
 function template_preprocess_jplayer_formatter_jplayer_playlist(&$vars) {
+  if (!$vars['element']['#item']['fid'])
+    return;
+    
   jplayer_add();
 
   $vars['mode'] = 'playlist';
@@ -55,6 +61,9 @@ function template_preprocess_jplayer_formatter_jplayer_playlist(&$vars) {
  * Preprocess function for jplayer.tpl.php when displaying a view as a playlist.
  */
 function template_preprocess_jplayer_view_playlist(&$vars) {
+  if (!$vars['element']['#item']['fid'])
+    return;
+    
   jplayer_add();
 
   $count = count($vars['items']);
