@@ -32,12 +32,20 @@ function jplayer_menu() {
  */
 function jplayer_theme() {
   return array(
-    'jplayer_formatter_jplayer_single' => array(
+    'jplayer_formatter_single' => array(
+      'arguments' => array('element' => NULL),
+      'file' => 'includes/jplayer.theme.inc',
+    ),
+    'jplayer_single' => array(
       'arguments' => array('element' => NULL),
       'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
     ),
-    'jplayer_formatter_jplayer_playlist' => array(
+    'jplayer_formatter_playlist' => array(
+      'arguments' => array('element' => NULL),
+      'file' => 'includes/jplayer.theme.inc',
+    ),
+    'jplayer_playlist' => array(
       'arguments' => array('element' => NULL),
       'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
@@ -65,13 +73,13 @@ function jplayer_views_api() {
  */
 function jplayer_field_formatter_info() {
   return array(
-    'jplayer_single' => array(
+    'single' => array(
       'label' => t('jPlayer player'),
       'field types' => array('filefield', 'audiofield'),
       'multiple values' => CONTENT_HANDLE_CORE,
       'description' => t('Display an audio file as an HTML5-compatible with Flash-fallback audio player.'),
     ),
-    'jplayer_playlist' => array(
+    'playlist' => array(
       'label' => t('jPlayer multifile playlist'),
       'field types' => array('filefield', 'audiofield'),
       'multiple values' => CONTENT_HANDLE_MULTIPLE,
