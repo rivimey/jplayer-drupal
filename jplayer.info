@@ -1,4 +1,3 @@
-; $Id$
 name = jPlayer
 description = Provides an HTML5-compatible with Flash-fallback audio player.
 package = User interface

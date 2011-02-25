@@ -1,4 +1,3 @@
-// $Id$
 
 The jPlayer default output uses a lot of CSS to get the player looking
 respectable. This default set of CSS is based on the demonstration skin provided

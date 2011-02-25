@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Provide the HTML output of the jPlayer audio player.

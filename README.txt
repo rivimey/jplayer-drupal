@@ -1,4 +1,3 @@
-// $Id$
 
 The jPlayer module provides a wrapper around the jPlayer JavaScript library.
 This library provides an HTML5-based player, that uses a Flash fallback for

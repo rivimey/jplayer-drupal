@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Theme and preprocess functions for the jPlayer module.
