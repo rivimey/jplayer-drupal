@@ -89,35 +89,14 @@ function template_preprocess_jplayer_single(&$vars) {
         'supplied' => implode(',', array_keys($files)),
         'preload' => $settings['preload'],
         'volume' => $settings['volume'] / 100,
-        'muted' => _true_false_convert($settings['muted']),
-        'autoplay' => _true_false_convert($settings['autoplay']),
-        'repeat' => _true_false_convert($settings['repeat']),
+        'muted' => jplayer_true_false_convert($settings['muted']),
+        'autoplay' => jplayer_true_false_convert($settings['autoplay']),
+        'repeat' => jplayer_true_false_convert($settings['repeat']),
         'backgroundColor' => $settings['backgroundColor'],
-        'showHour' => _true_false_convert($settings['showHour']),
-        'showMin' => _true_false_convert($settings['showMin']),
-        'showSec' => _true_false_convert($settings['showSec']),
-        'padHour' => _true_false_convert($settings['padHour']),
-        'padMin' => _true_false_convert($settings['padMin']),
-        'padSec' => _true_false_convert($settings['padSec']),
-        'sepHour' => $settings['sepHour'],
-        'sepMin' => $settings['sepMin'],
-        'sepSec' => $settings['sepSec'],
       ),
     ),
   );
   drupal_add_js($player, 'setting');
-}
-
-/**
- * Convert 0 and 1 to JS friendly boolean values.
- */
-function _true_false_convert($value) {
-  if ($value == 0) {
-    return FALSE;
-  }
-  else {
-    return TRUE;
-  }
 }
 
 /**

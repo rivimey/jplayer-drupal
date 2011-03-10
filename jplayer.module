@@ -4,7 +4,7 @@
  * Provides an HTML5-compatible with Flash-fallback audio player.
  *
  * This module provides functionality for loading the jPlayer library and
- * formatters for CCK FileFields.
+ * formatters for File Fields.
  */
 
 /**
@@ -58,17 +58,6 @@ function jplayer_theme() {
 }
 
 /**
- * Implements hook_views_api().
- * @todo D7 Conversion
- */
-function jplayer_views_api() {
-  return array(
-    'api' => 2,
-    'path' => drupal_get_path('module', 'jplayer') . '/includes',
-  );
-}
-
-/**
  * Implements hook_field_formatter_info().
  */
 function jplayer_field_formatter_info() {
@@ -85,15 +74,6 @@ function jplayer_field_formatter_info() {
         'muted' => FALSE,
         'repeat' => 0,
         'backgroundColor' => '000000',
-        'showHour' => FALSE,
-        'showMin' => TRUE,
-        'showSec' => TRUE,
-        'padHour' => FALSE,
-        'padMin' => TRUE,
-        'padSec' => TRUE,
-        'sepHour' => ':',
-        'sepMin' => ':',
-        'sepSec' => '',
       ),
     ),
     'jplayer_playlist' => array(
@@ -208,96 +188,18 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#size' => 6,
       '#default_value' => $settings['backgroundColor'],
     );
-    
-    $form['showHour'] = array(
-      '#title' => t('Display hours'),
-      '#type' => 'select',
-      '#options' => array(
-        FALSE => t('No'),
-        TRUE => t('Yes'),
-      ),
-      '#default_value' => $settings['showHour'],
-    );
-    
-    $form['showMin'] = array(
-      '#title' => t('Display minutes'),
-      '#type' => 'select',
-      '#options' => array(
-        FALSE => t('No'),
-        TRUE => t('Yes'),
-      ),
-      '#default_value' => $settings['showMin'],
-    );
-    
-    $form['showSec'] = array(
-      '#title' => t('Display seconds'),
-      '#type' => 'select',
-      '#options' => array(
-        FALSE => t('No'),
-        TRUE => t('Yes'),
-      ),
-      '#default_value' => $settings['showSec'],
-    );
-    
-    $form['padHour'] = array(
-      '#title' => t('Zero-pad the hours'),
-      '#type' => 'select',
-      '#options' => array(
-        FALSE => t('No'),
-        TRUE => t('Yes'),
-      ),
-      '#default_value' => $settings['padHour'],
-    );
-    
-    $form['padMin'] = array(
-      '#title' => t('Zero-pad the minutes'),
-      '#type' => 'select',
-      '#options' => array(
-        FALSE => t('No'),
-        TRUE => t('Yes'),
-      ),
-      '#default_value' => $settings['padMin'],
-    );
-    
-    $form['padSec'] = array(
-      '#title' => t('Zero-pad the seconds'),
-      '#type' => 'select',
-      '#options' => array(
-        FALSE => t('No'),
-        TRUE => t('Yes'),
-      ),
-      '#default_value' => $settings['padSec'],
-    );
-    
-    $form['sepHour'] = array(
-      '#title' => t('Hours seperator'),
-      '#type' => 'textfield',
-      '#maxlength' => 32,
-      '#default_value' => $settings['sepHour'],
-    );
-    
-    $form['sepMin'] = array(
-      '#title' => t('minutes seperator'),
-      '#type' => 'textfield',
-      '#maxlength' => 32,
-      '#default_value' => $settings['sepMin'],
-    );
-    
-    $form['sepSec'] = array(
-      '#title' => t('Seconds seperator'),
-      '#type' => 'textfield',
-      '#maxlength' => 32,
-      '#default_value' => $settings['sepSec'],
-    );
   }
   
   return $form;
 }
 
+/**
+ * Element validation to check volume is between 0 and 100.
+ */
 function _volume_check($element, &$form_state) {
   $value = $element['#value'];
   
-  if ($value < 0 || $value > 100) {
+  if ($value <= 0 || $value >= 100) {
     form_set_error($element, t('Volume must be a percentage between 0% and 100%.'));
   }
 }
@@ -347,10 +249,20 @@ function jplayer_add($add = TRUE) {
   if (isset($filepath)) {
     $jplayer_js = jplayer_get_file_path('jplayer.js');
     $jplayer_css = jplayer_get_file_path('jplayer.css');
+    
     $settings = array('jPlayer' => array(
-        'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
-        'autoPlay' => (int) variable_get('jplayer_autoplay', ''),
-      ));
+      'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
+      'showHour' => jplayer_true_false_convert(variable_get('jplayer_showHour', FALSE)),
+      'showMin' => jplayer_true_false_convert(variable_get('jplayer_showMin', TRUE)),
+      'showSec' => jplayer_true_false_convert(variable_get('jplayer_showSec', TRUE)),
+      'padHour' => jplayer_true_false_convert(variable_get('jplayer_padHour', FALSE)),
+      'padMin' => jplayer_true_false_convert(variable_get('jplayer_padMin', TRUE)),
+      'padSec' => jplayer_true_false_convert(variable_get('jplayer_padSec', TRUE)),
+      'sepHour' => variable_get('jplayer_sepHour', ':'),
+      'sepMin' => variable_get('jplayer_sepMin', ':'),
+      'sepSec' => variable_get('jplayer_sepSec', ''),
+    ));
+    
     if ($add) {
       drupal_add_js($filepath, array('scope' => 'footer', 'group' => JS_LIBRARY));
       drupal_add_js($jplayer_js, array('scope' => 'footer', 'group' => JS_THEME));
@@ -432,5 +344,30 @@ function jplayer_get_version($directory = NULL) {
     $version = $matches[1];
   }
   
-  return $version;
+  $parts = explode('.', $version);
+  
+  return array('version' => $version, 'major' => $parts[0], 'minor' => $parts[1]);
+}
+
+/**
+ * Convert 0 and 1 to JS friendly boolean values.
+ */
+function jplayer_true_false_convert($value) {
+  if ($value == 0) {
+    return FALSE;
+  }
+  else {
+    return TRUE;
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ * @todo D7 Conversion
+ */
+function jplayer_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'jplayer') . '/includes',
+  );
 }
