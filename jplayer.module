@@ -9,13 +9,13 @@
  */
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function jplayer_menu() {
   $items = array();
 
-  $items['admin/settings/jplayer'] = array(
-    'title' => 'jPlayer settings',
+  $items['admin/config/media/jplayer'] = array(
+    'title' => 'jPlayer',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('jplayer_settings_form'),
     'access arguments' => array('administer site configuration'),
@@ -27,30 +27,31 @@ function jplayer_menu() {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function jplayer_theme() {
   return array(
-    'jplayer_formatter_single' => array(
-      'arguments' => array('element' => NULL),
-      'file' => 'includes/jplayer.theme.inc',
-    ),
     'jplayer_single' => array(
-      'arguments' => array('element' => NULL),
+      'variables' => array(
+        'object' => NULL,
+        'instance' => array(),
+        'item' => array(),
+        'delta' => NULL,
+      ),
       'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
     ),
     'jplayer_formatter_playlist' => array(
-      'arguments' => array('element' => NULL),
+      'render element' => 'element',
       'file' => 'includes/jplayer.theme.inc',
     ),
     'jplayer_playlist' => array(
-      'arguments' => array('element' => NULL),
+      'render element' => 'element',
       'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
     ),
     'jplayer_view_playlist' => array(
-      'arguments' => array('view' => NULL, 'items' => NULL),
+      'variables' => array('view' => NULL, 'items' => NULL),
       'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
     ),
@@ -58,33 +59,272 @@ function jplayer_theme() {
 }
 
 /**
- * Implementation of Views' hook_views_api().
+ * Implements hook_views_api().
+ * @todo D7 Conversion
  */
 function jplayer_views_api() {
   return array(
     'api' => 2,
-    'path' => drupal_get_path('module', 'jplayer') .'/includes',
+    'path' => drupal_get_path('module', 'jplayer') . '/includes',
   );
 }
 
 /**
- * Implementation of CCK's hook_field_formatter_info().
+ * Implements hook_field_formatter_info().
  */
 function jplayer_field_formatter_info() {
   return array(
-    'single' => array(
-      'label' => t('jPlayer player'),
-      'field types' => array('filefield', 'audiofield'),
-      'multiple values' => CONTENT_HANDLE_CORE,
+    'jplayer_single' => array(
+      'label' => t('jPlayer - Single Player'),
+      'field types' => array('file'),
       'description' => t('Display an audio file as an HTML5-compatible with Flash-fallback audio player.'),
+      'settings' => array(
+        'autoplay' => 0,
+        'solution' => 'html, flash',
+        'preload' => 'metadata',
+        'volume' => 80,
+        'muted' => FALSE,
+        'repeat' => 0,
+        'backgroundColor' => '000000',
+        'showHour' => FALSE,
+        'showMin' => TRUE,
+        'showSec' => TRUE,
+        'padHour' => FALSE,
+        'padMin' => TRUE,
+        'padSec' => TRUE,
+        'sepHour' => ':',
+        'sepMin' => ':',
+        'sepSec' => ':',
+      ),
     ),
-    'playlist' => array(
-      'label' => t('jPlayer multifile playlist'),
-      'field types' => array('filefield', 'audiofield'),
-      'multiple values' => CONTENT_HANDLE_MULTIPLE,
+    'jplayer_playlist' => array(
+      'label' => t('jPlayer - Playlist'),
+      'field types' => array('file'),
       'description' => t('Display multi-value fields as an HTML5-compatible with Flash-fallback audio player.'),
     ),
   );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  $settings = $display['settings'];
+  
+  switch ($display['type']) {
+    case 'jplayer_single':
+      foreach ($items as $delta => $item) {
+        jplayer_add();
+        $output = theme('jplayer_single', array(
+          'object' => $object,
+          'instance' => $instance,
+          'item' => $item,
+          'delta' => $delta,
+          'display' => $display,
+        ));
+        
+        $element[$delta] = array('#markup' => $output);
+      }
+      break;
+  }
+  
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  
+  $form = array();
+  
+  if($display['type'] == 'jplayer_single') {
+    // jPlayer single
+    $form['autoplay'] = array(
+      '#title' => t('Autoplay'),
+      '#type' => 'select',
+      '#options' => array(
+        0 => t('No'),
+        1 => t('Yes'),
+      ),
+      '#default_value' => $settings['autoplay'],
+    );
+    
+    $form['solution'] = array(
+      '#title' => t('Preferred solution'),
+      '#type' => 'select',
+      '#options' => array(
+        'html, flash' => t('HTML5'),
+        'flash, html' => t('Flash'),
+      ),
+      '#default_value' => $settings['solution'],
+    );
+    
+    $form['preload'] = array(
+      '#title' => t('Preload media'),
+      '#type' => 'select',
+      '#options' => array(
+        'metadata' => t('No'),
+        'auto' => t('Yes'),
+      ),
+      '#description' => t("Preloading media before it's requested isn't available in all browsers."),
+      '#default_value' => $settings['preload'],
+    );
+    
+    $form['volume'] = array(
+      '#title' => t('Initial volume'),
+      '#type' => 'textfield',
+      '#field_suffix' => '%',
+      '#maxlength' => 3,
+      '#size' => 3,
+      '#default_value' => $settings['volume'],
+      '#element_validate' => array('_volume_check'),
+    );
+    
+    $form['muted'] = array(
+      '#title' => t('Initially muted'),
+      '#type' => 'select',
+      '#options' => array(
+        FALSE => t('No'),
+        TRUE => t('Yes'),
+      ),
+      '#default_value' => $settings['muted'],
+    );
+    
+    $form['repeat'] = array(
+      '#title' => t('Repeat'),
+      '#type' => 'select',
+      '#options' => array(
+        0 => t('No'),
+        1 => t('Yes'),
+      ),
+      '#default_value' => $settings['repeat'],
+    );
+    
+    $form['backgroundColor'] = array(
+      '#title' => t('Background color'),
+      '#type' => 'textfield',
+      '#field_preffix' => '#',
+      '#maxlength' => 6,
+      '#size' => 6,
+      '#default_value' => $settings['backgroundColor'],
+    );
+    
+    $form['showHour'] = array(
+      '#title' => t('Display hours'),
+      '#type' => 'select',
+      '#options' => array(
+        FALSE => t('No'),
+        TRUE => t('Yes'),
+      ),
+      '#default_value' => $settings['showHour'],
+    );
+    
+    $form['showMin'] = array(
+      '#title' => t('Display minutes'),
+      '#type' => 'select',
+      '#options' => array(
+        FALSE => t('No'),
+        TRUE => t('Yes'),
+      ),
+      '#default_value' => $settings['showMin'],
+    );
+    
+    $form['showSec'] = array(
+      '#title' => t('Display seconds'),
+      '#type' => 'select',
+      '#options' => array(
+        FALSE => t('No'),
+        TRUE => t('Yes'),
+      ),
+      '#default_value' => $settings['showSec'],
+    );
+    
+    $form['padHour'] = array(
+      '#title' => t('Zero-pad the hours'),
+      '#type' => 'select',
+      '#options' => array(
+        FALSE => t('No'),
+        TRUE => t('Yes'),
+      ),
+      '#default_value' => $settings['padHour'],
+    );
+    
+    $form['padMin'] = array(
+      '#title' => t('Zero-pad the minutes'),
+      '#type' => 'select',
+      '#options' => array(
+        FALSE => t('No'),
+        TRUE => t('Yes'),
+      ),
+      '#default_value' => $settings['padMin'],
+    );
+    
+    $form['padSec'] = array(
+      '#title' => t('Zero-pad the seconds'),
+      '#type' => 'select',
+      '#options' => array(
+        FALSE => t('No'),
+        TRUE => t('Yes'),
+      ),
+      '#default_value' => $settings['padSec'],
+    );
+    
+    $form['sepHour'] = array(
+      '#title' => t('Hours seperator'),
+      '#type' => 'textfield',
+      '#maxlength' => 32,
+      '#default_value' => $settings['sepHour'],
+    );
+    
+    $form['sepMin'] = array(
+      '#title' => t('minutes seperator'),
+      '#type' => 'textfield',
+      '#maxlength' => 32,
+      '#default_value' => $settings['sepMin'],
+    );
+    
+    $form['sepSec'] = array(
+      '#title' => t('Seconds seperator'),
+      '#type' => 'textfield',
+      '#maxlength' => 32,
+      '#default_value' => $settings['sepSec'],
+    );
+  }
+  
+  return $form;
+}
+
+function _volume_check($element, &$form_state) {
+  $value = $element['#value'];
+  
+  if ($value < 0 || $value > 100) {
+    form_set_error($element, t('Volume must be a percentage between 0% and 100%.'));
+  }
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function jplayer_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  
+  $summary = '';
+  
+  if ($display['type'] == 'jplayer_single') {
+    if (isset($settings['autoplay']) && $settings['autoplay'] == 1) {
+      $summary = t('Single jPlayer instance which autoplays.');
+    }
+    else {
+      $summary = t('Single jPlayer instance.');
+    }
+  }
+  
+  return $summary;
 }
 
 /**
@@ -109,18 +349,18 @@ function jplayer_add($add = TRUE) {
   }
 
   if (isset($filepath)) {
-    $jplayer_js = jplayer_get_file_path('jplayer.js');    
-    $jplayer_css = jplayer_get_file_path('jplayer.css'); 
+    $jplayer_js = jplayer_get_file_path('jplayer.js');
+    $jplayer_css = jplayer_get_file_path('jplayer.css');
     $settings = array('jPlayer' => array(
-      'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
-      'autoPlay' => (int) variable_get('jplayer_autoplay', ''),
-    ));
+        'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
+        'autoPlay' => (int) variable_get('jplayer_autoplay', ''),
+      ));
     if ($add) {
-      drupal_add_js($filepath);
-      drupal_add_js($jplayer_js);
+      drupal_add_js($filepath, array('scope' => 'footer', 'group' => JS_LIBRARY));
+      drupal_add_js($jplayer_js, array('scope' => 'footer', 'group' => JS_THEME));
       drupal_add_css($jplayer_css);
       if (!$added) {
-        drupal_add_js($settings, 'setting');
+        drupal_add_js($settings, array('type' => 'setting', 'scope' => JS_DEFAULT));
         $added = TRUE;
       }
     }
@@ -128,7 +368,10 @@ function jplayer_add($add = TRUE) {
       'js' => array(
         array('data' => $filepath),
         array('data' => $jplayer_js),
-        array('data' => $settings, 'type' => 'setting'),
+        array(
+          'data' => $settings,
+          'type' => 'setting',
+        ),
       ),
       'css' => array(
         array('data' => $jplayer_css),
@@ -140,7 +383,7 @@ function jplayer_add($add = TRUE) {
 }
 
 /**
- * Returns path to the most appropriate file 
+ * Returns path to the most appropriate file.
  *
  * @param $filename
  *   Name of the file to find
@@ -164,31 +407,34 @@ function jplayer_get_file_path($filename, $required_files = array()) {
 }
 
 /**
- * Return the version of jQuery UI installed.
+ * Return the version of jPlayer installed.
  *
  * @param $directory
  *   The directory to check for a jPlayer installation.
  */
 function jplayer_get_version($directory = NULL) {
   $version = 0;
-
+  
   if (!isset($directory)) {
     $directory = variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
   }
-
+  
   if (file_exists($directory . '/jquery.jplayer.min.js')) {
     $contents = file_get_contents($directory . '/jquery.jplayer.min.js');
   }
   elseif (file_exists($directory . '/jquery.jplayer.js')) {
     $contents = file_get_contents($directory . '/jquery.jplayer.js');
   }
-
+  else {
+    $contents = NULL;
+  }
+  
   $matches = array();
   preg_match('/Version:?[ ]*([\d.]+)/i', $contents, $matches);
-
+  
   if (isset($matches[1])) {
     $version = $matches[1];
   }
-
+  
   return $version;
 }

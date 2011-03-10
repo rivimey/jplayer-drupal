@@ -5,36 +5,67 @@
  */
 
 /**
- * Themes single file.
- */
-function theme_jplayer_formatter_single($element) {
-  if ($element['#item']['fid']) {
-    jplayer_add();
-    return theme('jplayer_single', $element);
-  }
-  return '';
-}
-
-/**
  * Preprocess function for jplayer.tpl.php when doing a single item.
  */
 function template_preprocess_jplayer_single(&$vars) {
+  $settings = $vars['display']['settings'];
+  
   $vars['mode'] = 'single';
-  $vars['item'] = array(
-    'url' => file_create_url($vars['element']['#item']['filepath']),
-    'label' => !empty($vars['element']['#item']['data']['description']) ? $vars['element']['#item']['data']['description'] : $vars['element']['#item']['filename'],
+  $vars['item'] += array(
+    'url' => file_create_url($vars['item']['uri']),
+    'label' => !empty($vars['item']['description']) ? $vars['item']['description'] : $vars['item']['filename'],
   );
-  $vars['player_id'] = 'jplayer-' . $vars['element']['#node']->nid . '-' . str_replace('_', '-', $vars['element']['#field_name']) . '-' . $vars['element']['#item']['#delta'];
+  $vars['player_id'] = 'jplayer-' . $vars['object']->nid . '-' . str_replace('_', '-', $vars['instance']['field_name']) . '-' . $vars['delta'];
+  
+  // Build player js settings
+  $url = pathinfo($vars['item']['uri']);
+  $player = array(
+    'jplayerInstances' => array(
+      $vars['player_id'] => array(
+        'files' => array(
+          $url['extension'] => $vars['item']['url'],
+        ),
+        'solution' => $settings['solution'],
+        'supplied' => $url['extension'],
+        'preload' => $settings['preload'],
+        'volume' => $settings['volume'] / 100,
+        'muted' => _true_false_convert($settings['muted']),
+        'autoplay' => _true_false_convert($settings['autoplay']),
+        'repeat' => _true_false_convert($settings['repeat']),
+        'backgroundColor' => $settings['backgroundColor'],
+        'showHour' => _true_false_convert($settings['showHour']),
+        'showMin' => _true_false_convert($settings['showMin']),
+        'showSec' => _true_false_convert($settings['showSec']),
+        'padHour' => _true_false_convert($settings['padHour']),
+        'padMin' => _true_false_convert($settings['padMin']),
+        'padSec' => _true_false_convert($settings['padSec']),
+        'sepHour' => $settings['sepHour'],
+        'sepMin' => $settings['sepMin'],
+        'sepSec' => $settings['sepSec'],
+      ),
+    ),
+  );
+  
+  drupal_add_js($player, 'setting');
+}
 
+function _true_false_convert($value) {
+  if ($value == 0) {
+    return FALSE;
+  }
+  else {
+    return TRUE;
+  }
 }
 
 /**
  * Themes multiple items as playlist.
  */
-function theme_jplayer_formatter_playlist($element) {
+function theme_jplayer_formatter_playlist($variables) {
+  $element = $variables['element'];
   if ($element[0]['#item']['fid']) {
     jplayer_add();
-    return theme('jplayer_playlist', $element);
+    return theme('jplayer_playlist', array('element' => $element));
   }
   return '';
 }
@@ -72,9 +103,10 @@ function template_preprocess_jplayer_playlist(&$vars) {
  * Preprocess function for jplayer.tpl.php when displaying a view as a playlist.
  */
 function template_preprocess_jplayer_view_playlist(&$vars) {
-  if (!$vars['element']['#item']['fid'])
+  if (!$vars['element']['#item']['fid']) {
     return;
-    
+  }
+
   jplayer_add();
 
   $count = count($vars['items']);

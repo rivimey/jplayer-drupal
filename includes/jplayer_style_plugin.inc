@@ -104,11 +104,11 @@ class jplayer_style_plugin extends views_plugin_style {
       }
     }
 
-    $output = theme('jplayer_view_playlist', $view, $items);
+    $output = theme('jplayer_view_playlist', array('view' => $view, 'items' => $items));
 
     // If doing a live preview, add the JavaScript directly to the output.
     if (isset($view->live_preview) && $view->live_preview) {
-      $js = drupal_add_js();
+      $js = drupal_add_js(JS_DEFAULT);
       $settings = array();
       foreach ($js['setting'] as $js_settings) {
         if (isset($js_settings['jPlayer'])) {
@@ -119,7 +119,7 @@ class jplayer_style_plugin extends views_plugin_style {
 
       $output .= "<script type=\"text/javascript\">\n";
       $output .= "Drupal.settings.jPlayer = Drupal.settings.jPlayer || {};\n";
-      $output .= "jQuery.extend(Drupal.settings.jPlayer, ". drupal_to_js($settings) .");\n";
+      $output .= "jQuery.extend(Drupal.settings.jPlayer, " . drupal_json_encode($settings) . ");\n";
       $output .= "</script>\n";
     }
 
@@ -130,7 +130,12 @@ class jplayer_style_plugin extends views_plugin_style {
   // Because we don't provide templates, but Views may complain when visiting
   // the theme information if it can't find any. Specify the name of our theme
   // function to keep it from causing any errors.
+  /**
+   * @todo Please document this function.
+   * @see http://drupal.org/node/1354
+   */
   function theme_functions() {
+    // TODO: Should this theme functions be declared in hook_theme()?
     return array('jplayer');
   }
 }

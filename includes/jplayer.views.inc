@@ -4,9 +4,9 @@
  * @file
  * Views module hooks for the jPlayer module.
  */
- 
+
 /**
- * Implementation of hook_views_plugins().
+ * Implements hook_views_plugins().
  */
 function jplayer_views_plugins() {
   $path = drupal_get_path('module', 'jplayer');

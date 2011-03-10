@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_requirements().
+ * Implements hook_requirements().
  */
 function jplayer_requirements($phase) {
   $requirements = array();
@@ -28,7 +28,7 @@ function jplayer_requirements($phase) {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function jplayer_uninstall() {
   //variable_del('jplayer_compression_type');

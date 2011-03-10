@@ -8,7 +8,7 @@
 /**
  * Menu callback; Provides the jPlayer settings form.
  */
-function jplayer_settings_form() {
+function jplayer_settings_form($form, &$form_state) {
   $form = array();
 
   $form['jplayer_directory'] = array(
