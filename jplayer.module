@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Provides an HTML5-compatible with Flash-fallback audio player.
@@ -94,7 +93,7 @@ function jplayer_field_formatter_info() {
         'padSec' => TRUE,
         'sepHour' => ':',
         'sepMin' => ':',
-        'sepSec' => ':',
+        'sepSec' => '',
       ),
     ),
     'jplayer_playlist' => array(

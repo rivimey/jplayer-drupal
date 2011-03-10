@@ -1,24 +1,32 @@
 <?php
-
 /**
+ * @file
  * Theme and preprocess functions for the jPlayer module.
  */
 
 /**
- * Preprocess function for jplayer.tpl.php when doing a single item.
+ * Preprocess function for single item.
  */
 function template_preprocess_jplayer_single(&$vars) {
   $settings = $vars['display']['settings'];
   
   $vars['mode'] = 'single';
-  $vars['item'] += array(
-    'url' => file_create_url($vars['item']['uri']),
-    'label' => !empty($vars['item']['description']) ? $vars['item']['description'] : $vars['item']['filename'],
-  );
   $vars['player_id'] = 'jplayer-' . $vars['object']->nid . '-' . str_replace('_', '-', $vars['instance']['field_name']) . '-' . $vars['delta'];
   
+  if (!isset($vars['item']['url'])) $vars['item']['url'] = file_create_url($vars['item']['uri']);
+  if (!isset($vars['item']['label'])) $vars['item']['label'] = !empty($vars['item']['description']) ? $vars['item']['description'] : $vars['item']['filename'];
+  
+  $url = pathinfo($vars['item']['url']);
+  
+  // Find out if we are dealing with audio or video
+  if (in_array($url['extension'], array('m4v', 'mp4', 'ogv', 'webmv'))) {
+    $vars['item']['type'] = 'video';
+  }
+  else {
+    $vars['item']['type'] = 'audio';
+  }
+  
   // Build player js settings
-  $url = pathinfo($vars['item']['uri']);
   $player = array(
     'jplayerInstances' => array(
       $vars['player_id'] => array(
@@ -45,10 +53,12 @@ function template_preprocess_jplayer_single(&$vars) {
       ),
     ),
   );
-  
   drupal_add_js($player, 'setting');
 }
 
+/**
+ * Convert 0 and 1 to JS friendly boolean values.
+ */
 function _true_false_convert($value) {
   if ($value == 0) {
     return FALSE;

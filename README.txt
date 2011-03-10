@@ -58,7 +58,7 @@ KNOWN ISSUES
 
  3. Video support doesn't work.
 
- 4. Only mp3 audio files currently supported.
+ 4. Doesn't support multiple file types in a single player instance e.g. m4a and ogg.
 
 
 SUPPORT

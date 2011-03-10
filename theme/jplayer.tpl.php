@@ -5,11 +5,13 @@
  */
 ?>
 
-<div id="<?php print $player_id; ?>" class="jp-jplayer"></div>
-
-<div class="jp-audio">
+<div class="jp-<?php print $item['type']; if($item['type'] == 'video') print ' jp-video-360p'; ?>">
   <div class="jp-type-single">
+    <div id="<?php print $player_id; ?>" class="jp-jplayer"></div>
     <div id="<?php print $player_id; ?>_interface" class="jp-interface">
+      <?php if ($item['type'] == 'video'): ?>
+      <div class="jp-video-play"></div>
+      <?php endif; ?>
       <ul class="jp-controls">
         <li><a href="#" class="jp-play" tabindex="1">play</a></li>
         <li><a href="#" class="jp-pause" tabindex="1">pause</a></li>
