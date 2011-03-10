@@ -1,8 +1,9 @@
 name = jPlayer
 description = Provides an HTML5-compatible with Flash-fallback audio player.
-package = User interface
+package = Media
 core = 7.x
 dependencies[] = file
+
 files[] = jplayer.install
 files[] = jplayer.module
 files[] = includes/jplayer.admin.inc
