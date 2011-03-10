@@ -33,9 +33,9 @@ function jplayer_theme() {
     'jplayer_single' => array(
       'variables' => array(
         'object' => NULL,
-        'instance' => array(),
-        'item' => array(),
-        'delta' => NULL,
+        'instance' => NULL,
+        'items' => array(),
+        'display' => NULL,
       ),
       'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
@@ -113,18 +113,15 @@ function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $la
   
   switch ($display['type']) {
     case 'jplayer_single':
-      foreach ($items as $delta => $item) {
-        jplayer_add();
-        $output = theme('jplayer_single', array(
-          'object' => $object,
-          'instance' => $instance,
-          'item' => $item,
-          'delta' => $delta,
-          'display' => $display,
-        ));
-        
-        $element[$delta] = array('#markup' => $output);
-      }
+      jplayer_add();
+      $output = theme('jplayer_single', array(
+        'object' => $object,
+        'instance' => $instance,
+        'items' => $items,
+        'display' => $display,
+      ));
+      
+      $element[0] = array('#markup' => $output);
       break;
   }
   

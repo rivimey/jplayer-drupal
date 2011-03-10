@@ -9,32 +9,84 @@
  */
 function template_preprocess_jplayer_single(&$vars) {
   $settings = $vars['display']['settings'];
+  $vars['player_id'] = 'jplayer-' . $vars['object']->nid . '-' . str_replace('_', '-', $vars['instance']['field_name']);
   
+  $video_extensions = array('m4v', 'mp4', 'ogv', 'webmv');
+  $audio_extensions = array('mp3', 'm4a', 'oga', 'webma', 'wav');
+  $poster_extensions = array('jpg', 'jpeg', 'png', 'gif');
+  
+  // @todo fix?
   $vars['mode'] = 'single';
-  $vars['player_id'] = 'jplayer-' . $vars['object']->nid . '-' . str_replace('_', '-', $vars['instance']['field_name']) . '-' . $vars['delta'];
   
-  if (!isset($vars['item']['url'])) $vars['item']['url'] = file_create_url($vars['item']['uri']);
-  if (!isset($vars['item']['label'])) $vars['item']['label'] = !empty($vars['item']['description']) ? $vars['item']['description'] : $vars['item']['filename'];
+  $poster = array();
+  $videos = array();
+  $audio = array();
   
-  $url = pathinfo($vars['item']['url']);
+  $files = array();
   
-  // Find out if we are dealing with audio or video
-  if (in_array($url['extension'], array('m4v', 'mp4', 'ogv', 'webmv'))) {
-    $vars['item']['type'] = 'video';
+  // Look through all the files provided and see what we have
+  foreach($vars['items'] as $delta => $item) {
+    // Get file URL
+    if (!isset($item['url'])) {
+      $item['url'] = file_create_url($item['uri']);
+    }
+    
+    // Get file extension
+    if (!isset($item['ext'])) {
+      $fileinfo = pathinfo($item['url']);
+      $item['ext'] = $fileinfo['extension'];
+    }
+    
+    // Get file label
+    if (!isset($item['label'])) {
+      if (empty($item['description'])) {
+        $item['label'] = $item['filename'];
+      }
+      else {
+        $item['label'] = $item['description'];
+      }
+    }
+    
+    // Add file into correct group
+    if (in_array($item['ext'], $video_extensions)) {
+      $videos[] = $item;
+    }
+    else if (in_array($item['ext'], $audio_extensions)) {
+      $audio[] = $item;
+    }
+    else if (in_array($item['ext'], $poster_extensions)) {
+      $poster[] = $item;
+    }
+  }
+  
+  // What player are we making? Video is preferred.
+  if (empty($videos)) {
+    $vars['type'] = 'audio';
+    foreach($audio as $file) {
+      $files[$file['ext']] = $file['url'];
+      $vars['label'] = $file['label'];
+    }
   }
   else {
-    $vars['item']['type'] = 'audio';
+    $vars['type'] = 'video';
+    foreach($videos as $file) {
+      $files[$file['ext']] = $file['url'];
+      $vars['label'] = $file['label'];
+    }
+  }
+  
+  // Add poster file if available
+  if (isset($poster[0])) {
+    $files['poster'] = $poster[0]['url'];
   }
   
   // Build player js settings
   $player = array(
     'jplayerInstances' => array(
       $vars['player_id'] => array(
-        'files' => array(
-          $url['extension'] => $vars['item']['url'],
-        ),
+        'files' => $files,
         'solution' => $settings['solution'],
-        'supplied' => $url['extension'],
+        'supplied' => implode(',', array_keys($files)),
         'preload' => $settings['preload'],
         'volume' => $settings['volume'] / 100,
         'muted' => _true_false_convert($settings['muted']),

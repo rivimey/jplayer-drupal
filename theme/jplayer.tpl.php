@@ -5,11 +5,11 @@
  */
 ?>
 
-<div class="jp-<?php print $item['type']; if($item['type'] == 'video') print ' jp-video-360p'; ?>">
+<div class="jp-<?php print $type; if($type == 'video') print ' jp-video-360p'; ?>">
   <div class="jp-type-single">
     <div id="<?php print $player_id; ?>" class="jp-jplayer"></div>
     <div id="<?php print $player_id; ?>_interface" class="jp-interface">
-      <?php if ($item['type'] == 'video'): ?>
+      <?php if ($type == 'video'): ?>
       <div class="jp-video-play"></div>
       <?php endif; ?>
       <ul class="jp-controls">
@@ -41,7 +41,7 @@
             <li<?php print $item['class'] ? ' class="' . $item['class'] . '"' : '' ?>><a href="<?php print $item['url']; ?>" title="<?php print check_plain($item['label']); ?>"><?php print check_plain($item['label']); ?></a></li>
           <?php endforeach; ?>
         <?php else: ?>
-          <li><?php print check_plain($item['label']); ?></li>
+          <li><?php print check_plain($label); ?></li>
         <?php endif; ?>
       </ul>
     </div>
