@@ -10,13 +10,11 @@
 function template_preprocess_jplayer_single(&$vars) {
   $settings = $vars['display']['settings'];
   $vars['player_id'] = 'jplayer-' . $vars['object']->nid . '-' . str_replace('_', '-', $vars['instance']['field_name']);
+  $vars['mode'] = 'single';
   
   $video_extensions = array('m4v', 'mp4', 'ogv', 'webmv');
   $audio_extensions = array('mp3', 'm4a', 'oga', 'webma', 'wav');
   $poster_extensions = array('jpg', 'jpeg', 'png', 'gif');
-  
-  // @todo fix?
-  $vars['mode'] = 'single';
   
   $poster = array();
   $videos = array();
@@ -80,7 +78,7 @@ function template_preprocess_jplayer_single(&$vars) {
     $files['poster'] = $poster[0]['url'];
   }
   
-  // Build player js settings
+  // Add player settings
   $player = array(
     'jplayerInstances' => array(
       $vars['player_id'] => array(
