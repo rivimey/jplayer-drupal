@@ -90,17 +90,20 @@
               $('#'+playerId+'_playlist').find('a').click(function(){
                 var index = $(this).attr('id').split('_')[2];
                 Drupal.jPlayer.setFiles(wrapper, player, index, true);
+                $(this).blur();
                 return false;
               });
               
               // Next
               $(wrapper).find('.jp-next').click(function() {
+                $(this).blur();
                 Drupal.jPlayer.next(wrapper, player);
                 return false;
               });
               
               // Previous
               $(wrapper).find('.jp-previous').click(function() {
+                $(this).blur();
                 Drupal.jPlayer.previous(wrapper, player);
                 return false;
               });
@@ -133,7 +136,6 @@
         type = key;
       }
     }
-    
     
     if (type in {'m4v':'', 'mp4':'','ogv':'','webmv':''}) {
       var kind = 'video jp-video-360p';
