@@ -43,7 +43,7 @@
               });
               
               // Repeat?
-              if (playerSettings.repeat == true) {
+              if (playerSettings.repeat != 'none') {
                 $(player).bind($.jPlayer.event.ended, function() {
                   $(this).jPlayer("play");
                 });
@@ -75,9 +75,14 @@
               });
               
               // Repeat?
-              if (playerSettings.repeat == true) {
+              if (playerSettings.repeat != 'none') {
                 $(player).bind($.jPlayer.event.ended, function() {
-                  $(this).jPlayer("play");
+                  if (playerSettings.repeat == 'single') {
+                    $(this).jPlayer("play");
+                  }
+                  else {
+                    Drupal.jPlayer.next(wrapper, player);
+                  }
                 });
               }
               
@@ -101,7 +106,7 @@
             swfPath: Drupal.settings.jPlayer.swfPath,
             cssSelectorAncestor: '#'+playerId+'_interface',
             solution: playerSettings.solution,
-            supplied: playerSettings.supplied[0],
+            supplied: playerSettings.supplied,
             preload: playerSettings.preload,
             volume: playerSettings.volume,
             muted: playerSettings.muted
@@ -114,11 +119,32 @@
   Drupal.jPlayer.setFiles = function(wrapper, player, index, play) {
     var playerId = $(player).attr('id');
     var playerSettings = Drupal.settings.jplayerInstances[playerId];
+    var type = $(wrapper).parent().attr('class');
     
     $(wrapper).find('.jp-playlist-current').removeClass('jp-playlist-current');
     $('#'+playerId+'_item_'+index).parent().addClass('jp-playlist-current');
     $('#'+playerId+'_item_'+index).addClass('jp-playlist-current');
     $(player).jPlayer("setMedia", playerSettings.files[index])
+    
+    for (key in playerSettings.files[index]) {
+      if (key != 'poster') {
+        type = key;
+      }
+    }
+    
+    
+    if (type in {'m4v':'', 'mp4':'','ogv':'','webmv':''}) {
+      var kind = 'video jp-video-360p';
+    }
+    else if (type in {'mp3':'', 'm4a':'','oga':'','webmv':'','wav':''}) {
+      var kind = 'audio';
+    }
+    
+    if (kind == 'audio') {
+      $(wrapper).find('img').remove();
+    }
+    
+    //$(wrapper).parent().attr('class', 'jp-'+kind);
     
     if (play == true) {
       $(player).jPlayer('play');

@@ -101,7 +101,7 @@ function template_preprocess_jplayer_single(&$vars) {
 function template_preprocess_jplayer_playlist(&$vars) {
   $vars['mode'] = 'playlist';
   
-  $video_extensions = array('m4v', 'mp4', 'ogv', 'webmv');
+  $video_extensions = array('m4v', 'ogv', 'webmv');
   $audio_extensions = array('mp3', 'm4a', 'oga', 'webma', 'wav');
   $poster_extensions = array('jpg', 'jpeg', 'png', 'gif');
   
@@ -147,10 +147,10 @@ function template_preprocess_jplayer_playlist(&$vars) {
     }
   }
   
-  // What player are we making? Video is preferred.
-  if (empty($videos)) {
+  $num = 0;
+  
+  if (!empty($audio)) {
     $vars['type'] = 'audio';
-    $num = 0;
     foreach($audio as $file) {
       $files[] = array($file['ext'] => $file['url']);
       $supplied[] = $file['ext'];
@@ -158,23 +158,21 @@ function template_preprocess_jplayer_playlist(&$vars) {
       $num++;
     }
   }
-  else {
+  
+  if (!empty($videos)) {
     $vars['type'] = 'video';
-    $num = 0;
     foreach($videos as $file) {
-      $files[] = array($file['ext'] => $file['url']);
-      $supplied[] = array($file['ext']);
-      $playlist[] = l($file['label'], '#', array('attributes' => array('id' => $vars['player_id'] . '_item_' . $num)));
+      if (isset($poster[0])) {
+        $files[] = array($file['ext'] => $file['url'], 'poster' => $poster[0]['url']);
+      }
+      else {
+        $files[] = array($file['ext'] => $file['url']);
+      }
+      $supplied[] = $file['ext'];
+      $playlist[] = l($file['label'], $file['url'], array('attributes' => array('id' => $vars['player_id'] . '_item_' . $num, 'tabindex' => 1)));
       $num++;
     }
   }
-  
-  /*
-  // Add poster file if available
-  if (isset($poster[0])) {
-    $files['poster'] = $poster[0]['url'];
-  }
-  */
   
   $vars['playlist'] = theme(
     'jplayer_item_list',
@@ -189,44 +187,17 @@ function template_preprocess_jplayer_playlist(&$vars) {
       $vars['player_id'] => array(
         'files' => $files,
         'solution' => $vars['settings']['solution'],
-        'supplied' => $supplied,
+        'supplied' => implode(',', $supplied),
         'preload' => $vars['settings']['preload'],
         'volume' => $vars['settings']['volume'] / 100,
         'muted' => (boolean)$vars['settings']['muted'],
         'autoplay' => (boolean)$vars['settings']['autoplay'],
-        'repeat' => (boolean)$vars['settings']['repeat'],
+        'repeat' => $vars['settings']['repeat'],
         'backgroundColor' => $vars['settings']['backgroundColor'],
       ),
     ),
   );
   drupal_add_js($player, 'setting');
-  
-  /*
-  $children = element_children($vars['element']);
-  $count = count($children);
-  $number = 0;
-  foreach ($children as $key) {
-    $classes = array();
-    
-    if ($number == 0) {
-      $classes[] = 'first';
-      $classes[] = 'jplayer_playlist_item_first';
-    }
-    
-    if ($number == $count - 1) {
-      $classes[] = 'last';
-      $classes[] = 'jplayer_playlist_item_last';
-    }
-    
-    $vars['items'][] = array(
-      'class' => implode(' ', $classes),
-      'url' => file_create_url($vars['element'][$key]['#item']['filepath']),
-      'label' => !empty($vars['element'][$key]['#item']['data']['description']) ? $vars['element'][$key]['#item']['data']['description'] : $vars['element'][$key]['#item']['filename'],
-    );
-    
-    $number++;
-  }
-  */
 }
 
 function theme_jplayer_item_list($variables) {
