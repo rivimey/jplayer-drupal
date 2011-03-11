@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Display style plugin for Views that renders rows as a jPlayer playlist.

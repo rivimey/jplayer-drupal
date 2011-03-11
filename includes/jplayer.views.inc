@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @file
  * Views module hooks for the jPlayer module.

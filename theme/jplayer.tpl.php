@@ -6,7 +6,7 @@
 ?>
 
 <div class="jp-<?php print $type; if($type == 'video') print ' jp-video-360p'; ?>">
-  <div class="jp-type-single">
+  <div class="jp-type-<?php print $mode; ?>">
     <div id="<?php print $player_id; ?>" class="jp-jplayer"></div>
     <div id="<?php print $player_id; ?>_interface" class="jp-interface">
       <?php if ($type == 'video'): ?>
@@ -18,6 +18,10 @@
         <li><a href="#" class="jp-stop" tabindex="1">stop</a></li>
         <li><a href="#" class="jp-mute" tabindex="1">mute</a></li>
         <li><a href="#" class="jp-unmute" tabindex="1">unmute</a></li>
+        <?php if ($mode == 'playlist'): ?>
+        <li><a href="#" class="jp-previous" tabindex="1">previous</a></li>
+        <li><a href="#" class="jp-next" tabindex="1">next</a></li>
+        <?php endif; ?>
       </ul>
       
       <div class="jp-progress">
@@ -35,15 +39,13 @@
     </div>
     
     <div id="<?php print $player_id; ?>_playlist" class="jp-playlist">
-      <ul>
-        <?php if ($mode == 'playlist'): ?>
-          <?php foreach ($items as $number => $item): ?>
-            <li<?php print $item['class'] ? ' class="' . $item['class'] . '"' : '' ?>><a href="<?php print $item['url']; ?>" title="<?php print check_plain($item['label']); ?>"><?php print check_plain($item['label']); ?></a></li>
-          <?php endforeach; ?>
-        <?php else: ?>
+      <?php if ($mode == 'playlist'): ?>
+        <?php print $playlist; ?>
+      <?php else: ?>
+        <ul>
           <li><?php print check_plain($label); ?></li>
-        <?php endif; ?>
-      </ul>
+        </ul>
+      <?php endif; ?>
     </div>
   </div>
 </div>

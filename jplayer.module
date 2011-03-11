@@ -32,27 +32,31 @@ function jplayer_theme() {
   return array(
     'jplayer_single' => array(
       'variables' => array(
-        'object' => NULL,
-        'instance' => NULL,
+        'player_id' => NULL,
         'items' => array(),
-        'display' => NULL,
+        'settings' => array(),
       ),
       'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
     ),
-    'jplayer_formatter_playlist' => array(
-      'render element' => 'element',
-      'file' => 'includes/jplayer.theme.inc',
-    ),
     'jplayer_playlist' => array(
-      'render element' => 'element',
+      'variables' => array(
+        'player_id' => NULL,
+        'items' => array(),
+        'settings' => array(),
+      ),
       'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
     ),
-    'jplayer_view_playlist' => array(
-      'variables' => array('view' => NULL, 'items' => NULL),
-      'template' => 'theme/jplayer',
+    'jplayer_item_list' => array(
+      'render element' => 'element',
       'file' => 'includes/jplayer.theme.inc',
+      'variables' => array(
+        'items' => array(),
+        'title' => NULL,
+        'type' => 'ul',
+        'attributes' => array(),
+      ),
     ),
   );
 }
@@ -65,7 +69,7 @@ function jplayer_field_formatter_info() {
     'jplayer_single' => array(
       'label' => t('jPlayer - Single Player'),
       'field types' => array('file'),
-      'description' => t('Display an audio file as an HTML5-compatible with Flash-fallback audio player.'),
+      'description' => t('Display an audio file as an HTML5-compatible with Flash-fallback media player.'),
       'settings' => array(
         'autoplay' => 0,
         'solution' => 'html, flash',
@@ -79,7 +83,16 @@ function jplayer_field_formatter_info() {
     'jplayer_playlist' => array(
       'label' => t('jPlayer - Playlist'),
       'field types' => array('file'),
-      'description' => t('Display multi-value fields as an HTML5-compatible with Flash-fallback audio player.'),
+      'description' => t('Display multi-value fields as an HTML5-compatible with Flash-fallback media player.'),
+      'settings' => array(
+        'autoplay' => 0,
+        'solution' => 'html, flash',
+        'preload' => 'metadata',
+        'volume' => 80,
+        'muted' => FALSE,
+        'repeat' => 0,
+        'backgroundColor' => '000000',
+      ),
     ),
   );
 }
@@ -89,16 +102,32 @@ function jplayer_field_formatter_info() {
  */
 function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $langcode, $items, $display) {
   $element = array();
-  $settings = $display['settings'];
   
   switch ($display['type']) {
     case 'jplayer_single':
-      $output = theme('jplayer_single', array(
-        'object' => $object,
-        'instance' => $instance,
-        'items' => $items,
-        'display' => $display,
-      ));
+      $output = theme(
+        'jplayer_single',
+        array(
+          'player_id' => 'jplayer-' . $object->nid . '-' . str_replace('_', '-', $instance['field_name']),
+          'items' => $items,
+          'settings' => $display['settings'],
+        )
+      );
+      
+      $element[0] = array(
+        '#markup' => $output,
+        '#attached' => jplayer_add(),
+      );
+      break;
+    case 'jplayer_playlist':
+      $output = theme(
+        'jplayer_playlist',
+        array(
+          'player_id' => 'jplayer-' . $object->nid . '-' . str_replace('_', '-', $instance['field_name']),
+          'items' => $items,
+          'settings' => $display['settings'],
+        )
+      );
       
       $element[0] = array(
         '#markup' => $output,
@@ -119,7 +148,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
   
   $form = array();
   
-  if($display['type'] == 'jplayer_single') {
+  if($display['type'] == 'jplayer_single' || $display['type'] == 'jplayer_playlist') {
     // jPlayer single
     $form['autoplay'] = array(
       '#title' => t('Autoplay'),
@@ -159,7 +188,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#maxlength' => 3,
       '#size' => 3,
       '#default_value' => $settings['volume'],
-      '#element_validate' => array('_volume_check'),
+      '#element_validate' => array('jplayer_volume_check'),
     );
     
     $form['muted'] = array(
@@ -198,10 +227,10 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
 /**
  * Element validation to check volume is between 0 and 100.
  */
-function _volume_check($element, &$form_state) {
+function jplayer_volume_check($element, &$form_state) {
   $value = $element['#value'];
   
-  if ($value <= 0 || $value >= 100) {
+  if ($value < 0 || $value > 100) {
     form_set_error($element, t('Volume must be a percentage between 0% and 100%.'));
   }
 }
@@ -223,6 +252,14 @@ function jplayer_field_formatter_settings_summary($field, $instance, $view_mode)
       $summary = t('Single jPlayer instance.');
     }
   }
+  else if ($display['type'] == 'jplayer_playlist') {
+    if (isset($settings['autoplay']) && $settings['autoplay'] == 1) {
+      $summary = t('jPlayer playlist which autoplays');
+    }
+    else {
+      $summary = t('jPlayer playlist');
+    }
+  }
   
   return $summary;
 }
@@ -232,18 +269,20 @@ function jplayer_field_formatter_settings_summary($field, $instance, $view_mode)
  * @todo make addition of CSS work for different themes
  */
 function jplayer_add() {
-  $settings = array('jPlayer' => array(
-    'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
-    'showHour' => jplayer_true_false_convert(variable_get('jplayer_showHour', FALSE)),
-    'showMin' => jplayer_true_false_convert(variable_get('jplayer_showMin', TRUE)),
-    'showSec' => jplayer_true_false_convert(variable_get('jplayer_showSec', TRUE)),
-    'padHour' => jplayer_true_false_convert(variable_get('jplayer_padHour', FALSE)),
-    'padMin' => jplayer_true_false_convert(variable_get('jplayer_padMin', TRUE)),
-    'padSec' => jplayer_true_false_convert(variable_get('jplayer_padSec', TRUE)),
-    'sepHour' => variable_get('jplayer_sepHour', ':'),
-    'sepMin' => variable_get('jplayer_sepMin', ':'),
-    'sepSec' => variable_get('jplayer_sepSec', ''),
-  ));
+  $settings = array(
+    'jPlayer' => array(
+      'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
+      'showHour' => (boolean)variable_get('jplayer_showHour', FALSE),
+      'showMin' => (boolean)variable_get('jplayer_showMin', TRUE),
+      'showSec' => (boolean)variable_get('jplayer_showSec', TRUE),
+      'padHour' => (boolean)variable_get('jplayer_padHour', FALSE),
+      'padMin' => (boolean)variable_get('jplayer_padMin', TRUE),
+      'padSec' => (boolean)variable_get('jplayer_padSec', TRUE),
+      'sepHour' => variable_get('jplayer_sepHour', ':'),
+      'sepMin' => variable_get('jplayer_sepMin', ':'),
+      'sepSec' => variable_get('jplayer_sepSec', ''),
+    ),
+  );
   drupal_add_js($settings, array('type' => 'setting', 'scope' => JS_DEFAULT));
   
   return array(
@@ -310,27 +349,4 @@ function jplayer_get_version($directory = NULL) {
   $parts = explode('.', $version);
   
   return array('version' => $version, 'major' => $parts[0], 'minor' => $parts[1]);
-}
-
-/**
- * Convert 0 and 1 to JS friendly boolean values.
- */
-function jplayer_true_false_convert($value) {
-  if ($value == 0) {
-    return FALSE;
-  }
-  else {
-    return TRUE;
-  }
-}
-
-/**
- * Implements hook_views_api().
- * @todo D7 Conversion
- */
-function jplayer_views_api() {
-  return array(
-    'api' => 2,
-    'path' => drupal_get_path('module', 'jplayer') . '/includes',
-  );
 }
