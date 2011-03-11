@@ -6,7 +6,7 @@
 ?>
 
 <div class="jp-<?php print $type; if($type == 'video') print ' jp-video-360p'; ?>">
-  <div class="jp-type-<?php print $mode; ?>">
+  <div class="jp-type-playlist">
     <div id="<?php print $player_id; ?>" class="jp-jplayer"></div>
     <div id="<?php print $player_id; ?>_interface" class="jp-interface">
       <?php if ($type == 'video'): ?>
@@ -39,7 +39,7 @@
     </div>
     
     <div id="<?php print $player_id; ?>_playlist" class="jp-playlist">
-      <?php if ($mode == 'playlist'): ?>
+      <?php if ($mode == 'playlist' || $mode == 'single'): ?>
         <?php print $playlist; ?>
       <?php else: ?>
         <ul>

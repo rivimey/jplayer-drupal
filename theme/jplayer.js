@@ -96,11 +96,13 @@
               // Next
               $(wrapper).find('.jp-next').click(function() {
                 Drupal.jPlayer.next(wrapper, player);
+                return false;
               });
               
               // Previous
               $(wrapper).find('.jp-previous').click(function() {
                 Drupal.jPlayer.previous(wrapper, player);
+                return false;
               });
             },
             swfPath: Drupal.settings.jPlayer.swfPath,

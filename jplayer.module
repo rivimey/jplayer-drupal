@@ -30,16 +30,7 @@ function jplayer_menu() {
  */
 function jplayer_theme() {
   return array(
-    'jplayer_single' => array(
-      'variables' => array(
-        'player_id' => NULL,
-        'items' => array(),
-        'settings' => array(),
-      ),
-      'template' => 'theme/jplayer',
-      'file' => 'includes/jplayer.theme.inc',
-    ),
-    'jplayer_playlist' => array(
+    'jplayer_player' => array(
       'variables' => array(
         'player_id' => NULL,
         'items' => array(),
@@ -66,10 +57,10 @@ function jplayer_theme() {
  */
 function jplayer_field_formatter_info() {
   return array(
-    'jplayer_single' => array(
-      'label' => t('jPlayer - Single Player'),
+    'jplayer_player' => array(
+      'label' => t('jPlayer - Player'),
       'field types' => array('file'),
-      'description' => t('Display an audio file as an HTML5-compatible with Flash-fallback media player.'),
+      'description' => t('Display file fields as an HTML5-compatible with Flash-fallback media player.'),
       'settings' => array(
         'autoplay' => 0,
         'solution' => 'html, flash',
@@ -78,20 +69,7 @@ function jplayer_field_formatter_info() {
         'muted' => FALSE,
         'repeat' => 'none',
         'backgroundColor' => '000000',
-      ),
-    ),
-    'jplayer_playlist' => array(
-      'label' => t('jPlayer - Playlist'),
-      'field types' => array('file'),
-      'description' => t('Display multi-value fields as an HTML5-compatible with Flash-fallback media player.'),
-      'settings' => array(
-        'autoplay' => 0,
-        'solution' => 'html, flash',
-        'preload' => 'metadata',
-        'volume' => 80,
-        'muted' => FALSE,
-        'repeat' => 'none',
-        'backgroundColor' => '000000',
+        'mode' => 'playlist',
       ),
     ),
   );
@@ -104,24 +82,9 @@ function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $la
   $element = array();
   
   switch ($display['type']) {
-    case 'jplayer_single':
+    case 'jplayer_player':
       $output = theme(
-        'jplayer_single',
-        array(
-          'player_id' => 'jplayer-' . $object->nid . '-' . str_replace('_', '-', $instance['field_name']),
-          'items' => $items,
-          'settings' => $display['settings'],
-        )
-      );
-      
-      $element[0] = array(
-        '#markup' => $output,
-        '#attached' => jplayer_add(),
-      );
-      break;
-    case 'jplayer_playlist':
-      $output = theme(
-        'jplayer_playlist',
+        'jplayer_player',
         array(
           'player_id' => 'jplayer-' . $object->nid . '-' . str_replace('_', '-', $instance['field_name']),
           'items' => $items,
@@ -148,8 +111,17 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
   
   $form = array();
   
-  if($display['type'] == 'jplayer_single' || $display['type'] == 'jplayer_playlist') {
-    // jPlayer single
+  if($display['type'] == 'jplayer_player') {
+    $form['mode'] = array(
+      '#title' => t('Kind'),
+      '#type' => 'select',
+      '#options' => array(
+        'single' => t('Single'),
+        'playlist' => t('Playlist'),
+      ),
+      '#default_value' => $settings['mode'],
+    );
+    
     $form['autoplay'] = array(
       '#title' => t('Autoplay'),
       '#type' => 'select',
@@ -245,20 +217,12 @@ function jplayer_field_formatter_settings_summary($field, $instance, $view_mode)
   
   $summary = '';
   
-  if ($display['type'] == 'jplayer_single') {
+  if ($display['type'] == 'jplayer_player') {
     if (isset($settings['autoplay']) && $settings['autoplay'] == 1) {
       $summary = t('Single jPlayer instance which autoplays.');
     }
     else {
       $summary = t('Single jPlayer instance.');
-    }
-  }
-  else if ($display['type'] == 'jplayer_playlist') {
-    if (isset($settings['autoplay']) && $settings['autoplay'] == 1) {
-      $summary = t('jPlayer playlist which autoplays');
-    }
-    else {
-      $summary = t('jPlayer playlist');
     }
   }
   
