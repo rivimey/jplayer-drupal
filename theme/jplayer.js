@@ -93,20 +93,6 @@
                 $(this).blur();
                 return false;
               });
-              
-              // Next
-              $(wrapper).find('.jp-next').click(function() {
-                $(this).blur();
-                Drupal.jPlayer.next(wrapper, player);
-                return false;
-              });
-              
-              // Previous
-              $(wrapper).find('.jp-previous').click(function() {
-                $(this).blur();
-                Drupal.jPlayer.previous(wrapper, player);
-                return false;
-              });
             },
             swfPath: Drupal.settings.jPlayer.swfPath,
             cssSelectorAncestor: '#'+playerId+'_interface',
@@ -115,6 +101,20 @@
             preload: playerSettings.preload,
             volume: playerSettings.volume,
             muted: playerSettings.muted
+          });
+          
+          // Next
+          $(wrapper).find('.jp-next').click(function() {
+            $(this).blur();
+            Drupal.jPlayer.next(wrapper, player);
+            return false;
+          });
+          
+          // Previous
+          $(wrapper).find('.jp-previous').click(function() {
+            $(this).blur();
+            Drupal.jPlayer.previous(wrapper, player);
+            return false;
           });
         }
       });
