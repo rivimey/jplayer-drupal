@@ -181,7 +181,6 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single') 
  */
 function template_preprocess_jplayer_view_playlist(&$vars) {
   // @TODO This is the ugliest hack ever, it has to be possible to do this better.
-  jplayer_add();
   $pseudo_element = array('#attached' => jplayer_add());
   drupal_process_attached($pseudo_element);
 
