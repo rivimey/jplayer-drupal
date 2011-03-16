@@ -32,6 +32,8 @@ function template_preprocess_jplayer_player(&$vars) {
     ),
   );
   drupal_add_js($player, 'setting');
+  
+  jplayer_add_core_js();
 }
 
 /**
@@ -180,10 +182,6 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single') 
  * Preprocess function for jplayer.tpl.php when displaying a view as a playlist.
  */
 function template_preprocess_jplayer_view_playlist(&$vars) {
-  // @TODO This is the ugliest hack ever, it has to be possible to do this better.
-  $pseudo_element = array('#attached' => jplayer_add());
-  drupal_process_attached($pseudo_element);
-
   $view = $vars['view'];
   $vars['settings'] = $view->style_plugin->options;
   $vars['mode'] = 'playlist';
@@ -211,4 +209,6 @@ function template_preprocess_jplayer_view_playlist(&$vars) {
     ),
   );
   drupal_add_js($player, 'setting');
+  
+  jplayer_add_core_js();
 }

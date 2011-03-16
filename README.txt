@@ -13,8 +13,6 @@ CONTENTS OF THIS FILE
 INTRODUCTION
 ------------
 
-WARNING: Currently very unstable and not intended for use on production sites.
-
 The jPlayer module provides a wrapper around the jPlayer JavaScript library.
 This library provides an HTML5-based player, that uses a Flash fallback for
 browsers that do not support it. This module provides a default presentation for
@@ -93,7 +91,7 @@ upgrading to this new version.
 KNOWN ISSUES
 ------------
 
- * Views support not available.
+ * Advanced theming methods and documentation needed.
 
 
 SUPPORT
@@ -103,8 +101,7 @@ Many issues you may have may be caused by jPlayer library itself, rather than
 the Drupal module. Check with the jPlayer support pages for issues with Flash
 warnings or the player behaving oddly:
 
-http://www.happyworm.com/jquery/jplayer/support.htm
-http://www.happyworm.com/jquery/jplayer/latest/developer-guide.htm#jPlayer-compatibility
+http://www.jplayer.org/support/
 
 If the problem is with the jPlayer Drupal module, please file a support request
 at http://drupal.org/project/issues/jplayer.

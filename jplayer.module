@@ -101,7 +101,6 @@ function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $la
       
       $element[0] = array(
         '#markup' => $output,
-        '#attached' => jplayer_add(),
       );
       break;
   }
@@ -237,53 +236,18 @@ function jplayer_field_formatter_settings_summary($field, $instance, $view_mode)
 }
 
 /**
- * Add the jPlayer library to the page.
- * @todo make addition of CSS work for different themes
- */
-function jplayer_add() {
-  $settings = array(
-    'jPlayer' => array(
-      'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
-      'showHour' => (boolean)variable_get('jplayer_showHour', FALSE),
-      'showMin' => (boolean)variable_get('jplayer_showMin', TRUE),
-      'showSec' => (boolean)variable_get('jplayer_showSec', TRUE),
-      'padHour' => (boolean)variable_get('jplayer_padHour', FALSE),
-      'padMin' => (boolean)variable_get('jplayer_padMin', TRUE),
-      'padSec' => (boolean)variable_get('jplayer_padSec', TRUE),
-      'sepHour' => variable_get('jplayer_sepHour', ':'),
-      'sepMin' => variable_get('jplayer_sepMin', ':'),
-      'sepSec' => variable_get('jplayer_sepSec', ''),
-    ),
-  );
-  drupal_add_js($settings, array('type' => 'setting', 'scope' => JS_DEFAULT));
-  
-  return array(
-    'library' => array(
-      array('jplayer', 'jplayer_library'),
-    ),
-    'js' => array(
-      drupal_get_path('module', 'jplayer') . '/theme/jplayer.js' => array('scope' => 'footer', 'group' => JS_THEME),
-    ),
-    'css' => array(
-      drupal_get_path('module', 'jplayer') . '/theme/jplayer.css' => array(),
-    ),
-  );
-}
-
-/**
  * Implements hook_library().
  */
 function jplayer_library() {
   $path = base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
   $libraries = array();
-  $libraries['jplayer_library'] = array(
+  $libraries['jplayer'] = array(
     'title' => 'jPlayer',
     'website' => 'http://www.jplayer.org',
     'version' => '2.0',
     'js' => array(
       $path . '/jquery.jplayer.min.js' => array(),
     ),
-    'css' => array(),
   );
   return $libraries;
 }
@@ -321,6 +285,35 @@ function jplayer_get_version($directory = NULL) {
   $parts = explode('.', $version);
   
   return array('version' => $version, 'major' => $parts[0], 'minor' => $parts[1]);
+}
+
+/**
+ * Add core JS and CSS needed for jPlayer instances
+ */
+function jplayer_add_core_js() {
+  // Add global settings
+  $settings = array(
+    'jPlayer' => array(
+      'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
+      'showHour' => (boolean)variable_get('jplayer_showHour', FALSE),
+      'showMin' => (boolean)variable_get('jplayer_showMin', TRUE),
+      'showSec' => (boolean)variable_get('jplayer_showSec', TRUE),
+      'padHour' => (boolean)variable_get('jplayer_padHour', FALSE),
+      'padMin' => (boolean)variable_get('jplayer_padMin', TRUE),
+      'padSec' => (boolean)variable_get('jplayer_padSec', TRUE),
+      'sepHour' => variable_get('jplayer_sepHour', ':'),
+      'sepMin' => variable_get('jplayer_sepMin', ':'),
+      'sepSec' => variable_get('jplayer_sepSec', ''),
+    ),
+  );
+  drupal_add_js($settings, array('type' => 'setting'));
+  
+  // Add library
+  drupal_add_library('jplayer', 'jplayer');
+  
+  // Add player and default style
+  drupal_add_js(drupal_get_path('module', 'jplayer') . '/theme/jplayer.js', array('type' => 'file', 'scope' => 'footer', 'group' => JS_DEFAULT));
+  drupal_add_css(drupal_get_path('module', 'jplayer') . '/theme/jplayer.css', array('type' => 'file', 'group' => CSS_DEFAULT));
 }
 
 /**
