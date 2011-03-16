@@ -175,3 +175,41 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single') 
   
   return array('files' => $files, 'extensions' => implode(',', $extensions), 'playlist' => $playlist, 'type' => $player_type);
 }
+
+/**
+ * Preprocess function for jplayer.tpl.php when displaying a view as a playlist.
+ */
+function template_preprocess_jplayer_view_playlist(&$vars) {
+  // @TODO This is the ugliest hack ever, it has to be possible to do this better.
+  jplayer_add();
+  $pseudo_element = array('#attached' => jplayer_add());
+  drupal_process_attached($pseudo_element);
+
+  $view = $vars['view'];
+  $vars['settings'] = $view->style_plugin->options;
+  $vars['mode'] = 'playlist';
+  $vars['player_id'] = 'jplayer-view-' . str_replace('_', '-', check_plain($view->name));
+
+  $player = jplayer_sort_files($vars['items'], $vars['player_id'], $vars['mode']);
+
+  $vars['playlist'] = theme('jplayer_item_list', array('items' => $player['playlist']));
+  $vars['type'] = $player['type'];
+
+  // Add player settings
+  $player = array(
+    'jplayerInstances' => array(
+      $vars['player_id'] => array(
+        'files' => $player['files'],
+        'solution' => $vars['settings']['solution'],
+        'supplied' => $player['extensions'],
+        'preload' => $vars['settings']['preload'],
+        'volume' => $vars['settings']['volume'] / 100,
+        'muted' => (boolean)$vars['settings']['muted'],
+        'autoplay' => (boolean)$vars['settings']['autoplay'],
+        'repeat' => $vars['settings']['repeat'],
+        'backgroundColor' => $vars['settings']['backgroundColor'],
+      ),
+    ),
+  );
+  drupal_add_js($player, 'setting');
+}

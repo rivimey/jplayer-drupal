@@ -14,6 +14,14 @@ class jplayer_style_plugin extends views_plugin_style {
     $options = parent::option_definition();
     $options['path_field'] = array('default' => NULL);
     $options['label_field'] = array('default' => NULL);
+
+    // Get the formatter default settings into the option_definition.
+    $formatter = jplayer_field_formatter_info();
+    $settings = $formatter['jplayer_player']['settings'];
+    foreach ($settings as $name => $default_value) {
+      $options[$name] = array('default' => $default_value);
+    }
+
     return $options;
   }
 
@@ -46,6 +54,19 @@ class jplayer_style_plugin extends views_plugin_style {
       '#description' => t('Select the fields that will contain a file path to an mp3 file. If multiple fields are selected, the first one that contains a value will be used. This field will be hidden from view unless there are no other fields visible'),
       '#weight' => -5,
     );
+
+    // Get the formatter settings into the options form.
+    $field = 'jplayer_view_pseudo_field';
+    $instance = array(
+      'display' => array(
+        'view' => array(
+          'type' => 'jplayer_player',
+          'settings' => $this->options,
+        ),
+      ),
+    );
+  
+    $form += jplayer_field_formatter_settings_form($field, $instance, 'view', $form, $form_state);
   }
 
   // Ensure we have all the settings necessary to render into tabs.

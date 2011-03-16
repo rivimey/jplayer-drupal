@@ -35,6 +35,8 @@ function jplayer_theme() {
         'player_id' => NULL,
         'items' => array(),
         'settings' => array(),
+        'type' => '',
+        'playlist' => '',
       ),
       'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
@@ -48,6 +50,11 @@ function jplayer_theme() {
         'type' => 'ul',
         'attributes' => array(),
       ),
+    ),
+    'jplayer_view_playlist' => array(
+      'arguments' => array('view' => NULL, 'items' => NULL),
+      'template' => 'theme/jplayer',
+      'file' => 'includes/jplayer.theme.inc',
     ),
   );
 }
@@ -314,4 +321,14 @@ function jplayer_get_version($directory = NULL) {
   $parts = explode('.', $version);
   
   return array('version' => $version, 'major' => $parts[0], 'minor' => $parts[1]);
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function jplayer_views_api() {
+  return array(
+    'path' => drupal_get_path('module', 'jplayer') . '/includes',
+    'api' => 3.0,
+  );
 }
