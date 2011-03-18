@@ -97,9 +97,10 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single') 
   $audio_extensions = array('mp3', 'm4a', 'oga', 'webma', 'wav');
   $poster_extensions = array('jpg', 'jpeg', 'png', 'gif');
   
-  $poster = array();
-  $videos = array();
-  $audio = array();
+  $poster = NULL;
+  $videos = FALSE;
+  $audio = FALSE;
+  $media = array();
   
   $files = array();
   $extensions = array();
@@ -130,38 +131,46 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single') 
     
     // Add file into correct group
     if (in_array($item['ext'], $video_extensions)) {
-      $videos[] = $item;
+      $videos = TRUE;
+      $item['type'] = 'audio';
     }
     else if (in_array($item['ext'], $audio_extensions)) {
-      $audio[] = $item;
+      $audio = TRUE;
+      $item['type'] = 'video';
     }
     else if (in_array($item['ext'], $poster_extensions)) {
-      $poster[] = $item;
+      $poster = $item['url'];
+      $item['type'] = 'poster';
     }
+    
+    $media[] = $item;
   }
   
   $num = 0;
-  
-  // What player are we making? Video, audio or mixed?
-  // Video takes priority
-  if (empty($videos) || $type == 'playlist') {
-    // Add audio
-    $player_type = 'audio';
-    foreach($audio as $file) {
-      $files[$num][$file['ext']] = $file['url'];
+  foreach ($media as $file) {
+    if ($videos == TRUE && $type != 'playlist') {
+      if ($file['type'] == 'audio') {
+        unset($file);
+      }
+      $player_type = 'video';
+    }
+    else if ($videos == TRUE && $type == 'playlist') {
+      $player_type = 'video';
+    }
+    else {
+      $player_type = 'audio';
+    }
+    
+    if (isset($file) && $file['type'] == 'audio') {
+      $files[][$file['ext']] = $file['url'];
       $extensions[] = $file['ext'];
       $playlist[] = l($file['label'], $file['url'], array('attributes' => array('id' => $player_id . '_item_' . $num, 'tabindex' => 1)));
       $num++;
     }
-  }
-  
-  if (empty($audio) || empty($files) || ($type == 'playlist' && !empty($videos))) {
-    // Add video
-    $player_type = 'video';
-    foreach($videos as $file) {
-      $files[$num][$file['ext']] = $file['url'];
-      if (isset($poster[0])) {
-        $files[$num]['poster'] = $poster[0]['url'];
+    else if (isset($file) && $file['type'] == 'video') {
+      $files[][$file['ext']] = $file['url'];
+      if ($poster != NULL) {
+        $files[]['poster'] = $poster;
       }
       $extensions[] = $file['ext'];
       $playlist[] = l($file['label'], $file['url'], array('attributes' => array('id' => $player_id . '_item_' . $num, 'tabindex' => 1)));
