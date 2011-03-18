@@ -30,7 +30,8 @@ function jplayer_menu() {
  */
 function jplayer_theme() {
   return array(
-    'jplayer_player' => array(
+    'jplayer' => array(
+      'template' => 'jplayer',
       'variables' => array(
         'player_id' => NULL,
         'items' => array(),
@@ -38,7 +39,6 @@ function jplayer_theme() {
         'type' => '',
         'playlist' => '',
       ),
-      'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
     ),
     'jplayer_item_list' => array(
@@ -52,8 +52,8 @@ function jplayer_theme() {
       ),
     ),
     'jplayer_view_playlist' => array(
+      'template' => 'jplayer',
       'arguments' => array('view' => NULL, 'items' => NULL),
-      'template' => 'theme/jplayer',
       'file' => 'includes/jplayer.theme.inc',
     ),
   );
@@ -91,7 +91,7 @@ function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $la
   switch ($display['type']) {
     case 'jplayer_player':
       $output = theme(
-        'jplayer_player',
+        'jplayer',
         array(
           'player_id' => 'jplayer-' . $object->nid . '-' . str_replace('_', '-', $instance['field_name']),
           'items' => $items,
@@ -308,12 +308,19 @@ function jplayer_add_core_js() {
   );
   drupal_add_js($settings, array('type' => 'setting'));
   
-  // Add library
-  drupal_add_library('jplayer', 'jplayer');
-  
-  // Add player and default style
-  drupal_add_js(drupal_get_path('module', 'jplayer') . '/theme/jplayer.js', array('type' => 'file', 'scope' => 'footer', 'group' => JS_DEFAULT));
-  drupal_add_css(drupal_get_path('module', 'jplayer') . '/theme/jplayer.css', array('type' => 'file', 'group' => CSS_DEFAULT));
+  return array(
+    '#attached' => array(
+      'library' => array(
+        array('jplayer', 'jplayer'),
+      ),
+      'js' => array(
+        drupal_get_path('module', 'jplayer') . '/theme/jplayer.js' => array('type' => 'file', 'scope' => 'footer', 'group' => JS_DEFAULT),
+      ),
+      'css' => array(
+        drupal_get_path('module', 'jplayer') . '/theme/jplayer.css' => array('type' => 'file', 'group' => CSS_DEFAULT),
+      ),
+    ),
+  );
 }
 
 /**

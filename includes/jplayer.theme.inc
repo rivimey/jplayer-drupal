@@ -7,7 +7,7 @@
 /**
  * Preprocess function for a player.
  */
-function template_preprocess_jplayer_player(&$vars) {
+function template_preprocess_jplayer(&$vars) {
   $vars['mode'] = $vars['settings']['mode'];
   
   $player = jplayer_sort_files($vars['items'], $vars['player_id'], $vars['mode']);
@@ -33,7 +33,7 @@ function template_preprocess_jplayer_player(&$vars) {
   );
   drupal_add_js($player, 'setting');
   
-  jplayer_add_core_js();
+  $vars['dynamic'] = jplayer_add_core_js();
 }
 
 /**
