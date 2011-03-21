@@ -262,7 +262,7 @@ function jplayer_get_version($directory = NULL) {
   $version = 0;
   
   if (!isset($directory)) {
-    $directory = variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
+    $directory = base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
   }
   
   if (file_exists($directory . '/jquery.jplayer.min.js')) {

@@ -22,7 +22,7 @@ function jplayer_settings_form($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('jPlayer library directory'),
     '#default_value' => variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
-    '#description' => t('Specify the path that contains the jPlayer library. The jplayer.player.min.js file should be in the root of this directory.'),
+    '#description' => t('Specify the path that contains the jPlayer library. The jquery.jplayer.min.js file should be in the root of this directory.'),
   );
   
   $form['timeformat'] = array(
