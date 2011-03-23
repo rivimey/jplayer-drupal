@@ -195,12 +195,12 @@ function template_preprocess_jplayer_view_playlist(&$vars) {
   $vars['settings'] = $view->style_plugin->options;
   $vars['mode'] = 'playlist';
   $vars['player_id'] = 'jplayer-view-' . str_replace('_', '-', check_plain($view->name));
-
+  
   $player = jplayer_sort_files($vars['items'], $vars['player_id'], $vars['mode']);
-
+  
   $vars['playlist'] = theme('jplayer_item_list', array('items' => $player['playlist']));
   $vars['type'] = $player['type'];
-
+  
   // Add player settings
   $player = array(
     'jplayerInstances' => array(
@@ -219,5 +219,5 @@ function template_preprocess_jplayer_view_playlist(&$vars) {
   );
   drupal_add_js($player, 'setting');
   
-  jplayer_add_core_js();
+  $vars['dynamic'] = jplayer_add_core_js();
 }
