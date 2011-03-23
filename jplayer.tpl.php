@@ -49,3 +49,4 @@
     </div>
   </div>
 </div>
+<?php print drupal_render($dynamic); ?>
