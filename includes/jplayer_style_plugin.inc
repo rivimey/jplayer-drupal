@@ -65,7 +65,7 @@ class jplayer_style_plugin extends views_plugin_style {
         ),
       ),
     );
-  
+
     $form += jplayer_field_formatter_settings_form($field, $instance, 'view', $form, $form_state);
   }
 
@@ -159,3 +159,4 @@ class jplayer_style_plugin extends views_plugin_style {
     return array('jplayer');
   }
 }
+

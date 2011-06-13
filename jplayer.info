@@ -11,3 +11,4 @@ files[] = includes/jplayer.theme.inc
 files[] = includes/jplayer.views.inc
 files[] = includes/jplayer_style_plugin.inc
 files[] = theme/jplayer.tpl.php
+

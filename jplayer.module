@@ -87,7 +87,7 @@ function jplayer_field_formatter_info() {
  */
 function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $langcode, $items, $display) {
   $element = array();
-  
+
   switch ($display['type']) {
     case 'jplayer_player':
       $output = theme(
@@ -98,13 +98,13 @@ function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $la
           'settings' => $display['settings'],
         )
       );
-      
+
       $element[0] = array(
         '#markup' => $output,
       );
       break;
   }
-  
+
   return $element;
 }
 
@@ -114,10 +114,10 @@ function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $la
 function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
-  
+
   $form = array();
-  
-  if($display['type'] == 'jplayer_player') {
+
+  if ($display['type'] == 'jplayer_player') {
     $form['mode'] = array(
       '#title' => t('Kind'),
       '#type' => 'select',
@@ -127,7 +127,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       ),
       '#default_value' => $settings['mode'],
     );
-    
+
     $form['autoplay'] = array(
       '#title' => t('Autoplay'),
       '#type' => 'select',
@@ -137,7 +137,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       ),
       '#default_value' => $settings['autoplay'],
     );
-    
+
     $form['solution'] = array(
       '#title' => t('Preferred solution'),
       '#type' => 'select',
@@ -147,7 +147,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       ),
       '#default_value' => $settings['solution'],
     );
-    
+
     $form['preload'] = array(
       '#title' => t('Preload media'),
       '#type' => 'select',
@@ -158,7 +158,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#description' => t("Preloading media before it's requested isn't available in all browsers."),
       '#default_value' => $settings['preload'],
     );
-    
+
     $form['volume'] = array(
       '#title' => t('Initial volume'),
       '#type' => 'textfield',
@@ -168,7 +168,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#default_value' => $settings['volume'],
       '#element_validate' => array('jplayer_volume_check'),
     );
-    
+
     $form['muted'] = array(
       '#title' => t('Initially muted'),
       '#type' => 'select',
@@ -178,7 +178,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       ),
       '#default_value' => $settings['muted'],
     );
-    
+
     $form['repeat'] = array(
       '#title' => t('Repeat'),
       '#type' => 'select',
@@ -189,7 +189,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       ),
       '#default_value' => $settings['repeat'],
     );
-    
+
     $form['backgroundColor'] = array(
       '#title' => t('Background color'),
       '#type' => 'textfield',
@@ -199,7 +199,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#default_value' => $settings['backgroundColor'],
     );
   }
-  
+
   return $form;
 }
 
@@ -208,7 +208,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
  */
 function jplayer_volume_check($element, &$form_state) {
   $value = $element['#value'];
-  
+
   if ($value < 0 || $value > 100) {
     form_set_error($element, t('Volume must be a percentage between 0% and 100%.'));
   }
@@ -220,9 +220,9 @@ function jplayer_volume_check($element, &$form_state) {
 function jplayer_field_formatter_settings_summary($field, $instance, $view_mode) {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
-  
+
   $summary = '';
-  
+
   if ($display['type'] == 'jplayer_player') {
     if (isset($settings['autoplay']) && $settings['autoplay'] == 1) {
       $summary = t('Single jPlayer instance which autoplays.');
@@ -231,7 +231,7 @@ function jplayer_field_formatter_settings_summary($field, $instance, $view_mode)
       $summary = t('Single jPlayer instance.');
     }
   }
-  
+
   return $summary;
 }
 
@@ -260,11 +260,11 @@ function jplayer_library() {
  */
 function jplayer_get_version($directory = NULL) {
   $version = 0;
-  
+
   if (!isset($directory)) {
     $directory = variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
   }
-  
+
   if (file_exists($directory . '/jquery.jplayer.min.js')) {
     $contents = file_get_contents($directory . '/jquery.jplayer.min.js');
   }
@@ -274,16 +274,16 @@ function jplayer_get_version($directory = NULL) {
   else {
     return false;
   }
-  
+
   $matches = array();
   preg_match('/Version:?[ ]*([\d.]+)/i', $contents, $matches);
-  
+
   if (isset($matches[1])) {
     $version = $matches[1];
   }
-  
+
   $parts = explode('.', $version);
-  
+
   return array('version' => $version, 'major' => $parts[0], 'minor' => $parts[1]);
 }
 
@@ -307,7 +307,7 @@ function jplayer_add_core_js() {
     ),
   );
   drupal_add_js($settings, array('type' => 'setting'));
-  
+
   return array(
     '#attached' => array(
       'library' => array(
@@ -332,3 +332,4 @@ function jplayer_views_api() {
     'api' => 3.0,
   );
 }
+
