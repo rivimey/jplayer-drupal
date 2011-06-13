@@ -124,9 +124,12 @@ function jplayer_settings_form($form, &$form_state) {
  * Validation for jplayer_settings_form().
  */
 function jplayer_settings_form_validate($form, &$form_state) {
-  $form_state['values']['version'] = jplayer_get_version($form_state['values']['jplayer_directory']);
-  if ((int)$form_state['values']['version']['major'] != 2) {
+  $version = jplayer_get_version($form_state['values']['jplayer_directory']);
+  if (!is_array($version) || (int)$version['major'] != 2) {
     form_error($form['library']['jplayer_directory'], t('Either the directory specified does not seem to contain the jPlayer library, or you are not using version 2 of jPlayer. Check to make sure that the jquery.player.min.js file is located within this directory.'));
+  }
+  else {
+    $form_state['values']['version'] = $version;
   }
 }
 
