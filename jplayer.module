@@ -257,6 +257,11 @@ function jplayer_library() {
  *
  * @param $directory
  *   The directory to check for a jPlayer installation.
+ *
+ * @return
+ *   An array containing 'version', 'major, and 'minor' keys representing the
+ *   version of jPlayer installed, or FALSE if a valid version number was not
+ *   found.
  */
 function jplayer_get_version($directory = NULL) {
   $version = 0;
@@ -283,6 +288,12 @@ function jplayer_get_version($directory = NULL) {
   }
 
   $parts = explode('.', $version);
+
+  // Though other parts of the module may check for a specific version,
+  // checking for a positive integer is more of a sanity check here.
+  if ($version < 1 || !isset($parts[0]) || !isset($parts[1])) {
+    return FALSE;
+  }
 
   return array('version' => $version, 'major' => $parts[0], 'minor' => $parts[1]);
 }
