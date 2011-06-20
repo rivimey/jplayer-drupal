@@ -244,6 +244,10 @@ function _jplayer_check_id($id) {
   // are embedded in hidden content such as View rendered with Quicktabs.
   static $player_ids = array();
 
+  // Add the request time, so if the same player is inserted multiple times
+  // AJAX all players are functional.
+  $id = $id . '-' . $_SERVER['REQUEST_TIME'];
+
   // Store a count of the number of times a unique ID is used, and make it
   // unique if needed.
   if (isset($player_ids[$id])) {
