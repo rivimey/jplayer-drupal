@@ -239,7 +239,7 @@ function jplayer_field_formatter_settings_summary($field, $instance, $view_mode)
  * Implements hook_library().
  */
 function jplayer_library() {
-  $path = base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
+  $path = variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
   $libraries = array();
   $libraries['jplayer'] = array(
     'title' => 'jPlayer',
