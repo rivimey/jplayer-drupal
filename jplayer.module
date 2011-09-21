@@ -272,7 +272,7 @@ function jplayer_get_version($directory = NULL) {
     $contents = file_get_contents($directory . '/jquery.jplayer.js');
   }
   else {
-    $contents = NULL;
+    return false;
   }
   
   $matches = array();
