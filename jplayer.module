@@ -33,7 +33,9 @@ function jplayer_theme() {
     'jplayer' => array(
       'template' => 'jplayer',
       'variables' => array(
-        'player_id' => NULL,
+        'entity_type' => NULL,
+        'entity' => NULL,
+        'field_name' => NULL,
         'items' => array(),
         'settings' => array(),
         'type' => '',
@@ -93,7 +95,9 @@ function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $la
       $output = theme(
         'jplayer',
         array(
-          'player_id' => 'jplayer-' . $object->nid . '-' . str_replace('_', '-', $instance['field_name']),
+          'entity_type' => $obj_type,
+          'entity' => $object,
+          'field_name' => $instance['field_name'],
           'items' => $items,
           'settings' => $display['settings'],
         )

@@ -8,6 +8,10 @@
  * Preprocess function for a player.
  */
 function template_preprocess_jplayer(&$vars) {
+  // Determine a unique player ID.
+  $ids = entity_extract_ids($vars['entity_type'], $vars['entity']);
+  $vars['player_id'] = _jplayer_check_id('jplayer-' . $vars['entity_type'] . '-' . $ids[0] . '-' . str_replace('_', '-', $vars['field_name']));
+
   $vars['mode'] = $vars['settings']['mode'];
 
   $player = jplayer_sort_files($vars['items'], $vars['player_id'], $vars['mode']);
@@ -194,7 +198,7 @@ function template_preprocess_jplayer_view_playlist(&$vars) {
   $view = $vars['view'];
   $vars['settings'] = $view->style_plugin->options;
   $vars['mode'] = 'playlist';
-  $vars['player_id'] = 'jplayer-view-' . str_replace('_', '-', check_plain($view->name));
+  $vars['player_id'] = _jplayer_check_id('jplayer-view-' . str_replace('_', '-', check_plain($view->name)));
 
   $player = jplayer_sort_files($vars['items'], $vars['player_id'], $vars['mode']);
 
@@ -220,5 +224,35 @@ function template_preprocess_jplayer_view_playlist(&$vars) {
   drupal_add_js($player, 'setting');
 
   $vars['dynamic'] = jplayer_add_core_js();
+}
+
+/**
+ * Return a unique ID for a jPlayer. This allows multiple embedded jPlayers to
+ * point to an identical file on the same page.
+ *
+ * @param $id
+ *   The ID to check for uniqueness.
+ *
+ * @return
+ *   A modified ID if the ID was not unique, or the same ID passed in if it was
+ *   unique.
+ */
+function _jplayer_check_id($id) {
+  // We keep track of player IDs generated per request. This ensures that if a
+  // player pointing to the same field is shown multiple times on a page, that
+  // each player gets a unique ID. This is especially a problem when jPlayers
+  // are embedded in hidden content such as View rendered with Quicktabs.
+  static $player_ids = array();
+
+  // Store a count of the number of times a unique ID is used, and make it
+  // unique if needed.
+  if (isset($player_ids[$id])) {
+    $id = $id . '-' . $player_ids[$id]++;
+  }
+  else {
+    $player_ids[$id] = 0;
+  }
+
+  return $id;
 }
 
