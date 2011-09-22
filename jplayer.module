@@ -87,7 +87,7 @@ function jplayer_field_formatter_info() {
 /**
  * Implements hook_field_formatter_view().
  */
-function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $langcode, $items, $display) {
+function jplayer_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
 
   switch ($display['type']) {
@@ -95,8 +95,8 @@ function jplayer_field_formatter_view($obj_type, $object, $field, $instance, $la
       $output = theme(
         'jplayer',
         array(
-          'entity_type' => $obj_type,
-          'entity' => $object,
+          'entity_type' => $entity_type,
+          'entity' => $entity,
           'field_name' => $instance['field_name'],
           'items' => $items,
           'settings' => $display['settings'],
