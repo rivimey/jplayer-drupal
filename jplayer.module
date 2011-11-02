@@ -158,8 +158,11 @@ function jplayer_file_download($uri) {
     if (time() <= ($started + variable_get('jplayer_access_time', 30))) {
       // Allow access, and immediately expire access to the file. Some browsers
       // (such as Chrome) send multiple HTTP requests for an <audio> element,
-      // so if the RANGE header is set we continue to allow access.
-      if (!isset($_SERVER['HTTP_RANGE'])) {
+      // so if the RANGE header is set we continue to allow access. Also,
+      // AppleCoreMedia in OS X 10.7 makes multiple requests in an attempt to
+      // fetch metadata about the audio. So, we ignore those requests until the
+      // agent indicates that the connection can be closed.
+      if (!isset($_SERVER['HTTP_RANGE']) && !(strpos($_SERVER['HTTP_USER_AGENT'], 'AppleCoreMedia') !== FALSE && strpos($_SERVER['HTTP_CONNECTION'], "keep-alive") !== FALSE)) {
         unset($_SESSION['jplayer_protect'][$access_key]);
       }
       return NULL;
