@@ -54,7 +54,7 @@
       track = $('#' + player.id + '_playlist .jp-playlist-current a').attr('href');
     }
 
-    var authorize_url = Drupal.settings.basePath + 'jplayer/authorize/' + Drupal.jPlayer.base64Encode(track) + '/' + Drupal.jPlayer.base64Encode(parseInt(time.getTime() / 1000).toString());
+    var authorize_url = Drupal.settings.basePath + 'jplayer_protect/authorize/' + Drupal.jPlayer.base64Encode(track) + '/' + Drupal.jPlayer.base64Encode(parseInt(time.getTime() / 1000).toString());
 
     // Ping the authorization URL. We need to disable async so that this
     // command finishes before thisandler returns.
