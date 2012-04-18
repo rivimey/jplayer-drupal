@@ -8,7 +8,7 @@
     attach: function(context, settings) {
       var wrapper = context;
       var player = wrapper.find('.jp-jplayer');
-      player.css(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
+      player.find(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
         // We can't use the play event as it's fired *after* jPlayer
         // attempts to download the audio.
         $(wrapper).find('a.jp-play').click(function() {
@@ -25,7 +25,7 @@
       var wrapper = context;
       var player = wrapper.find('.jp-jplayer');
       var playerId = $(player).attr('id');
-      player.css(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
+      player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
         $('#'+playerId+'_playlist').find('a').click(function(){
           if (Drupal.settings.jPlayer.protected) {
             Drupal.jPlayer.authorize(wrapper, player);
