@@ -70,7 +70,7 @@ function jplayer_protect_settings_form(&$form, &$form_state) {
   $form['jplayer_protect_access_time'] = array(
     '#title' => t('Access delay'),
     '#type' => 'textfield',
-    '#default_value' => variable_get('jplayer_access_time', 30),
+    '#default_value' => variable_get('jplayer_protect_access_time', 30),
     '#size' => 5,
     '#description' => t('The number of seconds that a client will have access to download a protected file after it is requested by jPlayer.'),
   );
@@ -82,12 +82,12 @@ function jplayer_protect_settings_form(&$form, &$form_state) {
  * Validate the access time setting.
  */
 function jplayer_protect_settings_form_validate($form, &$form_state) {
-  $time = $form_state['values']['jplayer_access_time'];
+  $time = $form_state['values']['jplayer_protect_access_time'];
   if ($form_state['values']['jplayer_protect'] && !is_numeric($time)) {
-    form_error($form['jplayer_access_time'], t('Access time must be a value in seconds.'));
+    form_error($form['jplayer_protect_access_time'], t('Access time must be a value in seconds.'));
   }
   if (intval($time) < 0) {
-    form_error($form['jplayer_access_time'], t('Access time must be at least 0 seconds.'));
+    form_error($form['jplayer_protect_access_time'], t('Access time must be at least 0 seconds.'));
   }
 }
 
