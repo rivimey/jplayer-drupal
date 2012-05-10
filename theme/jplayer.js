@@ -24,7 +24,8 @@
       
       // INITIALISE
       
-      $('.jp-jplayer', context).each(function() {
+      $('.jp-jplayer:not(.jp-jplayer-processed)', context).each(function() {
+        $(this).addClass('jp-jplayer-processed');
         var wrapper = this.parentNode;
         var player = this;
         var playerId = $(this).attr('id');
