@@ -15,12 +15,18 @@
         player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
           // We can't use the play event as it's fired *after* jPlayer
           // attempts to download the audio.
-          $(wrapper).find('a.jp-play').click(function() {
-            if (Drupal.settings.jPlayer.protect) {
-              var index = $(this).attr('id').split('_')[2];
-              Drupal.jPlayer.setFiles(wrapper, player, index, true);
-              Drupal.jPlayerProtect.authorize(wrapper, player);
-            }
+          $(wrapper).find('a.jp-play, a.jp-next, a.jp-previous').each(function() {
+            $(this).click(function() {
+              if (Drupal.settings.jPlayer.protect) {
+                if ($(this).attr('class') == 'jp-next') {
+                  Drupal.jPlayer.next(wrapper, player);
+                }
+                if ($(this).attr('class') == 'jp-previous') {
+                  Drupal.jPlayer.previous(wrapper, player);
+                }
+                Drupal.jPlayerProtect.authorize(wrapper, player);
+              }
+            });
           });
         });
       });
