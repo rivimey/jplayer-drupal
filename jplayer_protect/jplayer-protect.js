@@ -8,15 +8,18 @@
 
   Drupal.behaviors.jPlayerProtectPlayButton = {
     attach: function(context, settings) {
-      var wrapper = context;
-      var player = wrapper.find('.jp-jplayer');
-      player.find(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
-        // We can't use the play event as it's fired *after* jPlayer
-        // attempts to download the audio.
-        $(wrapper).find('a.jp-play').click(function() {
-          if (Drupal.settings.jPlayer.protected) {
-            Drupal.jPlayerProtect.authorize(wrapper, player);
-          }
+      $('.jp-jplayer', context).each(function() {
+        var wrapper = this.parentNode;
+        var player = $(this);
+        player.playerType = $(this).parent().attr('class');
+        player.find(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
+          // We can't use the play event as it's fired *after* jPlayer
+          // attempts to download the audio.
+          $(wrapper).find('a.jp-play').click(function() {
+            if (Drupal.settings.jPlayer.protect) {
+              Drupal.jPlayerProtect.authorize(wrapper, player);
+            }
+          });
         });
       });
     }
@@ -24,14 +27,17 @@
 
   Drupal.behaviors.jPlayerProtectPlaylist = {
     attach: function(context, settings) {
-      var wrapper = context;
-      var player = wrapper.find('.jp-jplayer');
-      var playerId = $(player).attr('id');
-      player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
-        $('#'+playerId+'_playlist').find('a').click(function(){
-          if (Drupal.settings.jPlayer.protected) {
-            Drupal.jPlayerProtect.authorize(wrapper, player);
-          }
+      $('.jp-jplayer', context).each(function() {
+        var wrapper = this.parentNode;
+        var player = $(this);
+        player.playerType = $(this).parent().attr('class');
+        var playerId = $(player).attr('id');
+        player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
+          $('#'+playerId+'_playlist').find('a').click(function(){
+            if (Drupal.settings.jPlayer.protect) {
+              Drupal.jPlayerProtect.authorize(wrapper, player);
+            }
+          });
         });
       });
     }
@@ -53,7 +59,7 @@
     else {
       // Get a reference to the current track using the <ul> list that is used
       // for the jPlayer playlist.
-      track = $('#' + player.id + '_playlist .jp-playlist-current a').attr('href');
+      track = $('#' + player.attr('id') + '_playlist .jp-playlist-current a').attr('href');
     }
 
     var authorize_url = Drupal.settings.basePath + 'jplayer_protect/authorize/' + Drupal.jPlayerProtect.base64Encode(track) + '/' + Drupal.jPlayerProtect.base64Encode(parseInt(time.getTime() / 1000).toString());
