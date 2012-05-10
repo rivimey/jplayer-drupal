@@ -306,6 +306,13 @@ function jplayer_get_version($directory = NULL) {
  * Add core JS and CSS needed for jPlayer instances
  */
 function jplayer_add_core_js() {
+  $added = &drupal_static(__FUNCTION__, FALSE);
+  if ($added) {
+    // Js was already loaded.
+    return;
+  }
+  $added = TRUE;
+
   // Add global settings
   $settings = array(
     'jPlayer' => array(
