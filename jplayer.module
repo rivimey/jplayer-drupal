@@ -92,17 +92,21 @@ function jplayer_field_formatter_view($entity_type, $entity, $field, $instance, 
 
   switch ($display['type']) {
     case 'jplayer_player':
-      $output = theme(
-        'jplayer',
-        array(
-          'entity_type' => $entity_type,
-          'entity' => $entity,
-          'field_name' => $instance['field_name'],
-          'items' => $items,
-          'settings' => $display['settings'],
-        )
-      );
-
+      if (!empty($items)) {
+        $output = theme(
+          'jplayer',
+          array(
+            'entity_type' => $entity_type,
+            'entity' => $entity,
+            'field_name' => $instance['field_name'],
+            'items' => $items,
+            'settings' => $display['settings'],
+          )
+        );
+      }
+      else {
+        $output = '';
+      }
       $element[0] = array(
         '#markup' => $output,
       );
