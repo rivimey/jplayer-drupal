@@ -35,7 +35,7 @@
         player.playerType = $(this).parent().attr('class');
         var playerId = $(player).attr('id');
         player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
-          $('#'+playerId+'_playlist').find('a').click(function(){
+          $('#' + playerId +'_playlist').find('a').click(function(){
             if (Drupal.settings.jPlayer.protect) {
               var index = $(this).attr('id').split('_')[2];
               Drupal.jPlayer.setFiles(wrapper, player, index, true);
