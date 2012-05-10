@@ -6,7 +6,7 @@
 
   Drupal.jPlayerProtect = Drupal.jPlayerProtect || {};
 
-  Drupal.behaviors.jPlayerProtectPlayButton = {
+  Drupal.behaviors.jPlayerProtectNavigation = {
     attach: function(context, settings) {
       $('.jp-jplayer', context).each(function() {
         var wrapper = this.parentNode;
