@@ -177,6 +177,10 @@ function jplayer_protect_form_jplayer_settings_form_alter(&$form, &$form_state, 
  * Implements hook_jplayer_add_js().
  */
 function jplayer_protect_jplayer_add_js() {
+  if (!variable_get('jplayer_protect', FALSE)) {
+    return;
+  }
+
   $settings = array(
     'jPlayer' => array(
       'protect' => variable_get('jplayer_protect', FALSE),
