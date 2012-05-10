@@ -60,7 +60,7 @@ function jplayer_protect_cron() {
  * Implements hook_file_download().
  */
 function jplayer_protect_file_download($uri) {
-  if (!variable_get('jplayer_protected', FALSE)) {
+  if (!variable_get('jplayer_protect', FALSE)) {
     return NULL;
   }
 
