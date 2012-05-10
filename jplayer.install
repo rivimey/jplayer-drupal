@@ -92,7 +92,8 @@ function jplayer_update_7001() {
  * Transition to the jplayer_protect module if jplayer content protection is
  * enabled. */
 function jplayer_update_7002() {
-  if (variable_get('jplayer_protected')) {
+  if (variable_get('jplayer_protected', FALSE)) {
+    variable_set('jplayer_protect', TRUE);
     if (!module_exists('jplayer_protect')) {
       module_enable(array('jplayer_protect'));
       db_drop_table('jplayer_protect_denied');
@@ -104,8 +105,7 @@ function jplayer_update_7002() {
   }
   else {
     db_drop_table('jplayer_denied');
-    // We delete this variable in case it's set, but not TRUE.
-    variable_del('jplayer_protected');
   }
+  variable_del('jplayer_protected');
 }
 
