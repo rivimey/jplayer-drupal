@@ -4,6 +4,8 @@
  */
 (function ($) {
 
+  Drupal.jPlayerProtect = Drupal.jPlayerProtect || {};
+
   Drupal.behaviors.jPlayerProtectPlayButton = {
     attach: function(context, settings) {
       var wrapper = context;
@@ -13,7 +15,7 @@
         // attempts to download the audio.
         $(wrapper).find('a.jp-play').click(function() {
           if (Drupal.settings.jPlayer.protected) {
-            Drupal.jPlayer.authorize(wrapper, player);
+            Drupal.jPlayerProtect.authorize(wrapper, player);
           }
         });
       });
@@ -28,7 +30,7 @@
       player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
         $('#'+playerId+'_playlist').find('a').click(function(){
           if (Drupal.settings.jPlayer.protected) {
-            Drupal.jPlayer.authorize(wrapper, player);
+            Drupal.jPlayerProtect.authorize(wrapper, player);
           }
         });
       });
@@ -38,7 +40,7 @@
   /**
    * Ping the authorization URL to gain access to protected files.
    */
-  Drupal.jPlayer.authorize = function(wrapper, player) {
+  Drupal.jPlayerProtect.authorize = function(wrapper, player) {
     // Generate the authorization URL to ping.
     var time = new Date();
 
@@ -54,7 +56,7 @@
       track = $('#' + player.id + '_playlist .jp-playlist-current a').attr('href');
     }
 
-    var authorize_url = Drupal.settings.basePath + 'jplayer_protect/authorize/' + Drupal.jPlayer.base64Encode(track) + '/' + Drupal.jPlayer.base64Encode(parseInt(time.getTime() / 1000).toString());
+    var authorize_url = Drupal.settings.basePath + 'jplayer_protect/authorize/' + Drupal.jPlayerProtect.base64Encode(track) + '/' + Drupal.jPlayerProtect.base64Encode(parseInt(time.getTime() / 1000).toString());
 
     // Ping the authorization URL. We need to disable async so that this
     // command finishes before thisandler returns.
@@ -84,7 +86,7 @@
     return false;
   };
 
-  Drupal.jPlayer.base64Encode = function(data) {
+  Drupal.jPlayerProtect.base64Encode = function(data) {
     // From http://phpjs.org/functions/base64_encode:358 where it is
     // dual licensed under GPL/MIT.
     //
@@ -108,7 +110,7 @@
         return data;
     }
 
-    data = Drupal.jPlayer.utf8Encode(data + '');
+    data = Drupal.jPlayerProtect.utf8Encode(data + '');
 
     do { // pack three octets into four hexets
         o1 = data.charCodeAt(i++);
@@ -140,7 +142,7 @@
     return enc;
   };
 
-  Drupal.jPlayer.utf8Encode = function(argString) {
+  Drupal.jPlayerProtect.utf8Encode = function(argString) {
     // From http://phpjs.org/functions/utf8_encode:577 where it is dual-licensed
     // under GPL/MIT.
     // http://kevin.vanzonneveld.net
