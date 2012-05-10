@@ -12,7 +12,7 @@
         var wrapper = this.parentNode;
         var player = $(this);
         player.playerType = $(this).parent().attr('class');
-        player.find(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
+        player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
           // We can't use the play event as it's fired *after* jPlayer
           // attempts to download the audio.
           $(wrapper).find('a.jp-play').click(function() {
