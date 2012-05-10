@@ -1,0 +1,60 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for the jplayer_protect module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function jplayer_protect_schema() {
+  $schema = array();
+  $schema['jplayer_protect_denied'] = array(
+    'description' => 'Contains user statistics for when a user is blocked from downloading a file.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The user ID of the user.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'fid' => array(
+        'description' => 'The file ID that was denied access.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'hostname' => array(
+        'description' => 'The hostname of the user that was denied access.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'timestamp' => array(
+        'description' => 'The last time this user was denied access.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('uid', 'fid', 'timestamp'),
+    'indexes' => array(
+      'uid' => array('uid'),
+      'fid' => array('fid'),
+      'hostname' => array('hostname'),
+      'timestamp' => array('timestamp'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function jplayer_uninstall() {
+  variable_del('jplayer_protect');
+}
+
