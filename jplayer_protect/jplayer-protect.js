@@ -40,11 +40,13 @@
         var player = $(this);
         player.playerType = $(this).parent().attr('class');
         var playerId = $(player).attr('id');
-        player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
-          $('#' + playerId +'_playlist').find('a').click(function(){
+        player.filter(':not(.jplayer-protect-playlist-processed)').addClass('jplayer-protect-playlist-processed').each(function() {
+          $('#' + playerId + '_playlist').find('a').click(function(){
             if (Drupal.settings.jPlayer.protect) {
               var index = $(this).attr('id').split('_')[2];
-              Drupal.jPlayer.setFiles(wrapper, player, index, true);
+              if (index) {
+                Drupal.jPlayer.setFiles(wrapper, player, index, true);
+              }
               Drupal.jPlayerProtect.authorize(wrapper, player);
             }
           });
