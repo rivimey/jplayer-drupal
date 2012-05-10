@@ -54,7 +54,7 @@ function jplayer_theme() {
       ),
     ),
     'jplayer_view_playlist' => array(
-      'template' => 'jplayer',
+      'template' => 'theme/jplayer',
       'arguments' => array('view' => NULL, 'items' => NULL),
       'file' => 'includes/jplayer.theme.inc',
     ),
