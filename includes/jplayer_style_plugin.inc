@@ -130,7 +130,7 @@ class jplayer_style_plugin extends views_plugin_style {
     if (isset($view->live_preview) && $view->live_preview) {
       $js = drupal_add_js(JS_DEFAULT);
       $settings = array();
-      foreach ($js['setting'] as $js_settings) {
+      foreach ($js['settings'] as $js_settings) {
         if (isset($js_settings['jPlayer'])) {
           $settings = $js_settings['jPlayer'];
           break;
