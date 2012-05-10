@@ -105,7 +105,7 @@ function jplayer_field_formatter_view($entity_type, $entity, $field, $instance, 
         );
       }
       else {
-        $output = '';
+        return array();
       }
       $element[0] = array(
         '#markup' => $output,
