@@ -64,7 +64,7 @@ function jplayer_protect_settings_form(&$form, &$form_state) {
   );
 
   if (variable_get('file_private_path', '') == '') {
-    $form['jplayer_protect']['#description'] = t('To enable file download protection, first <a href="@file-system-settings">set a Private file system path and set protected file fields to use it.</a>.', array('@file-system-settings' => url('admin/config/media/file-system', array('query' => drupal_get_destination()))));
+    $form['jplayer_protect']['#description'] = t('To enable file download protection, first <a href="@file-system-settings">set a Private file system path and set protected file fields to use it</a>.', array('@file-system-settings' => url('admin/config/media/file-system', array('query' => drupal_get_destination()))));
   }
 
   $form['jplayer_protect_access_time'] = array(
