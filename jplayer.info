@@ -3,6 +3,7 @@ description = Provides an HTML5-compatible with Flash-fallback audio player.
 package = Media
 core = 7.x
 dependencies[] = file
+configure = admin/config/media/jplayer
 
 files[] = jplayer.install
 files[] = jplayer.module
