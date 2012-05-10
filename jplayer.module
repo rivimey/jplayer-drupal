@@ -31,7 +31,7 @@ function jplayer_menu() {
 function jplayer_theme() {
   return array(
     'jplayer' => array(
-      'template' => 'jplayer',
+      'template' => 'theme/jplayer',
       'variables' => array(
         'entity_type' => NULL,
         'entity' => NULL,
