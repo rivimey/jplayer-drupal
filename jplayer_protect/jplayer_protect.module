@@ -173,3 +173,30 @@ function jplayer_protect_form_jplayer_settings_form_alter(&$form, &$form_state, 
   jplayer_protect_settings_form($form, $form_state);
 }
 
+/**
+ * Implements hook_jplayer_add_js().
+ */
+function jplayer_protect_jplayer_add_js() {
+  $settings = array(
+    'jPlayer' => array(
+      'protect' => variable_get('jplayer_protect', FALSE),
+    ),
+  );
+  drupal_add_js($settings, array('type' => 'setting'));
+
+  return array(
+    'jplayer_protect' => array(
+      '#attached' => array(
+        'js' => array(
+          drupal_get_path('module', 'jplayer_protect') . '/jplayer-protect.js' => array(
+            'type' => 'file',
+            'scope' => 'footer',
+            'group' => JS_DEFAULT,
+          ),
+        ),
+      ),
+    ),
+  );
+
+}
+
