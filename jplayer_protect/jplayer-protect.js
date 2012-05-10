@@ -17,6 +17,8 @@
           // attempts to download the audio.
           $(wrapper).find('a.jp-play').click(function() {
             if (Drupal.settings.jPlayer.protect) {
+              var index = $(this).attr('id').split('_')[2];
+              Drupal.jPlayer.setFiles(wrapper, player, index, true);
               Drupal.jPlayerProtect.authorize(wrapper, player);
             }
           });
@@ -35,6 +37,8 @@
         player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
           $('#'+playerId+'_playlist').find('a').click(function(){
             if (Drupal.settings.jPlayer.protect) {
+              var index = $(this).attr('id').split('_')[2];
+              Drupal.jPlayer.setFiles(wrapper, player, index, true);
               Drupal.jPlayerProtect.authorize(wrapper, player);
             }
           });
