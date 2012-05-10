@@ -114,24 +114,6 @@ function jplayer_settings_form($form, &$form_state) {
     '#default_value' => variable_get('jplayer_sepSec', ''),
   );
 
-  $form['jplayer_protected'] = array(
-    '#title' => t('Protect audio files from direct downloads'),
-    '#type' => 'checkbox',
-    '#default_value' => variable_get('jplayer_protected', FALSE),
-  );
-
-  if (variable_get('file_private_path', '') == '') {
-    $form['jplayer_protected']['#description'] = t('To enable file download protection, first <a href="@file-system-settings">set a Private file system path and set protected file fields to use it.</a>.', array('@file-system-settings' => url('admin/config/media/file-system', array('query' => drupal_get_destination()))));
-  }
-
-  $form['jplayer_access_time'] = array(
-    '#title' => t('Access delay'),
-    '#type' => 'textfield',
-    '#default_value' => variable_get('jplayer_access_time', 30),
-    '#size' => 5,
-    '#description' => t('The number of seconds that a client will have access to download a protected file after it is requested by jPlayer.'),
-  );
-
   $form['#validate'][] = 'jplayer_settings_form_validate';
   $form['#submit'][] = 'jplayer_settings_form_submit';
 
@@ -148,14 +130,6 @@ function jplayer_settings_form_validate($form, &$form_state) {
   }
   else {
     $form_state['values']['version'] = $version;
-  }
-
-  $time = $form_state['values']['jplayer_access_time'];
-  if ($form_state['values']['jplayer_protected'] && !is_numeric($time)) {
-    form_error($form['jplayer_access_time'], t('Access time must be a value in seconds.'));
-  }
-  if (intval($time) < 0) {
-    form_error($form['jplayer_access_time'], t('Access time must be at least 0 seconds.'));
   }
 }
 

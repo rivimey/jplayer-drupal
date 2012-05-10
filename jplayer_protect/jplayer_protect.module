@@ -165,3 +165,11 @@ function jplayer_protect_file_download($uri) {
   return -1;
 }
 
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function jplayer_protect_form_jplayer_settings_form_alter(&$form, &$form_state, $form_id) {
+  module_load_include('inc', 'jplayer_protect', 'jplayer_protect.admin');
+  jplayer_protect_settings_form($form, $form_state);
+}
+
