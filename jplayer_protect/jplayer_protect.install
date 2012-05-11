@@ -54,7 +54,7 @@ function jplayer_protect_schema() {
 /**
  * Implements hook_uninstall().
  */
-function jplayer_uninstall() {
+function jplayer_protect_uninstall() {
   variable_del('jplayer_protect');
 }
 
