@@ -53,7 +53,7 @@ function jplayer_protect_authorize($filepath, $timestamp) {
 function jplayer_protect_cron() {
   // Delete records older than a week.
   // TODO Needs dbtng.
-  db_query("DELETE FROM {jplayer_denied} WHERE timestamp < :time", array(':time' => time() - 604800));
+  db_query("DELETE FROM {jplayer_protect_denied} WHERE timestamp < :time", array(':time' => time() - 604800));
 }
 
 /**
@@ -161,7 +161,7 @@ function jplayer_protect_file_download($uri) {
   $denied->fid = $file->fid;
   $denied->hostname = ip_address();
   $denied->timestamp = REQUEST_TIME;
-  drupal_write_record('jplayer_denied', $denied);
+  drupal_write_record('jplayer_protect_denied', $denied);
   return -1;
 }
 
