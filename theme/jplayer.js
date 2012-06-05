@@ -79,6 +79,7 @@
               });
 
               // Add playlist selection
+              // TODO: make this a $playlist object for easier user below.
               $('#'+playerId+'_playlist').find('a').click(function(){
                 var index = $(this).attr('id').split('_')[2];
                 Drupal.jPlayer.setFiles(wrapper, player, index, true);
@@ -87,6 +88,14 @@
               });
 
               Drupal.attachBehaviors(wrapper);
+              if (playerSettings.continuous == 1) {
+                $(player).bind($.jPlayer.event.ended, function(e) {
+                  // TODO: Combine all ended event in one location.
+                  if(!$('li:last',  $('#'+playerId+'_playlist')).hasClass('jp-playlist-current')) {
+                    Drupal.jPlayer.next(wrapper, player);
+                  }
+                });
+              }
 
               // Repeat?
               if (playerSettings.repeat != 'none') {
@@ -99,7 +108,6 @@
                   }
                 });
               }
-              
             },
             swfPath: Drupal.settings.jPlayer.swfPath,
             cssSelectorAncestor: '#'+playerId+'_interface',

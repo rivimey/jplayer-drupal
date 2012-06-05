@@ -72,6 +72,7 @@ function jplayer_field_formatter_info() {
       'description' => t('Display file fields as an HTML5-compatible with Flash-fallback media player.'),
       'settings' => array(
         'autoplay' => 0,
+        'continuous' => 0,
         'solution' => 'html, flash',
         'preload' => 'metadata',
         'volume' => 80,
@@ -134,6 +135,22 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
         'playlist' => t('Playlist'),
       ),
       '#default_value' => $settings['mode'],
+    );
+
+    $form['continuous'] = array(
+      '#title' => t('Continuous Play'),
+      '#type' => 'select',
+      '#options' => array(
+        0 => t('No'),
+        1 => t('Yes'),
+      ),
+      '#description' => t('Play the next track continuously'),
+      '#default_value' => $settings['continuous'],
+      '#states' => array(
+        'visible' => array(
+          ':input[name="fields[field_audio][settings_edit_form][settings][mode]"]' => array('value' => 'playlist'),
+        ),
+      ),
     );
 
     $form['autoplay'] = array(
