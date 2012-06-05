@@ -68,12 +68,14 @@ function jplayer_protect_file_download($uri) {
   // TODO dbtng.
   // TODO use EntityFieldQuery.
   $result = db_query("SELECT fid FROM {file_managed} WHERE uri = :uri", array(':uri' => $uri));
-  $file = file_load($result->fetchField());
 
   // If the file is not found in the database, we're not responsible for it.
-  if (empty($file)) {
+  if (!($fid = $result->fetchField())) {
     return NULL;
   }
+
+  // We have a valid fid, go ahead and load the file.
+  $file = file_load($fid);
 
   // Find out if any file field contains this file, and if so, which field
   // and node it belongs to. Required for later access checking.
