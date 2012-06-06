@@ -95,6 +95,14 @@
                     Drupal.jPlayer.next(wrapper, player);
                     $(this).jPlayer("play");
                   }
+                  else if($('li:last',  $('#'+playerId+'_playlist')).hasClass('jp-playlist-current')) {
+                    // We are at the end of the playlist, so move to the first
+                    // track but stop playing if repeat is disabled.
+                    Drupal.jPlayer.next(wrapper, player);
+                    if (playerSettings.repeat == 'none') {
+                      $(this).jPlayer("pause");
+                    }
+                  }
                 });
               }
 
