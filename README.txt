@@ -79,6 +79,53 @@ jPlayer. Below is the difference between them:
     another file.
 
 
+THEMING
+------------
+
+The jPlayer default output uses a lot of CSS to get the player looking
+respectable. This default set of CSS is based on the demonstration skin provided
+at http://www.happyworm.com/jquery/jplayer/latest/demos.htm.
+
+Note that the default HTML output of jPlayer module is a standard template that
+other "skins" may work with. It is highly suggest to not override the
+jplayer.tpl.php file and instead build all your custom theming on top of the
+default HTML through CSS.
+
+To override the CSS file:
+
+ * Copy (or create a new .css file) and place it in your theme with the same
+   name as the original (jplayer.css).
+
+ * In your theme .info file, add the line:
+
+     stylesheets[all][] = jplayer.css
+
+   to point to the new css file in your theme. If your file is a sub-directory,
+   you will need adjust the stylesheet declaration to include that
+   sub-directory.
+
+     stylesheets[all][] = css/jplayer.css
+
+   jplayer.css and jplayer.jpg have to be in the same folder, so if you want to
+   override one of them copy also the other one. For more information, see
+   https://drupal.org/node/263967.
+
+To override the Javascript file:
+
+ * Copy (or create a new .js file) and place it in your theme with the same
+   name as the original (jplayer.js).
+
+ * In your theme .info file, add the line:
+
+     scripts[] = jplayer.js
+
+   to point to new new javascript file in your theme. If your file is a
+   sub-directory, you will adjust the JavaScript declaration to include that
+   sub-directory.
+
+   For more information, see http://drupal.org/node/171213.
+
+
 UPGRADING
 ---------
 
@@ -86,12 +133,6 @@ Since the jPlayer module is purely a formatter most of the upgrade work required
 will be in upgrading from old CCK File Fields into new core File Fields in
 Drupal 7. Apart from that you will need to re-select your formatters after
 upgrading to this new version.
-
-
-KNOWN ISSUES
-------------
-
- * Advanced theming methods and documentation needed.
 
 
 SUPPORT
