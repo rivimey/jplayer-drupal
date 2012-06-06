@@ -106,15 +106,10 @@
                 });
               }
 
-              // Repeat?
-              if (playerSettings.repeat != 'none') {
+              // Repeat a single track?
+              if (playerSettings.repeat == 'single') {
                 $(player).bind($.jPlayer.event.ended, function() {
-                  if (playerSettings.repeat == 'single') {
-                    $(this).jPlayer("play");
-                  }
-                  else {
-                    Drupal.jPlayer.next(wrapper, player);
-                  }
+                  $(this).jPlayer("play");
                 });
               }
             },
