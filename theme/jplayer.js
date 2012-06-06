@@ -93,6 +93,7 @@
                   // TODO: Combine all ended event in one location.
                   if(!$('li:last',  $('#'+playerId+'_playlist')).hasClass('jp-playlist-current')) {
                     Drupal.jPlayer.next(wrapper, player);
+                    $(this).jPlayer("play");
                   }
                 });
               }
