@@ -138,13 +138,13 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
     );
 
     $form['continuous'] = array(
-      '#title' => t('Continuous Play'),
+      '#title' => t('Continuous play'),
       '#type' => 'select',
       '#options' => array(
         0 => t('No'),
         1 => t('Yes'),
       ),
-      '#description' => t('Play the next track continuously'),
+      '#description' => t('Play the next track in a playlist automatically.'),
       '#default_value' => $settings['continuous'],
       '#states' => array(
         'visible' => array(
@@ -212,6 +212,7 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
         'single' => t('Single'),
         'none' => t('None'),
       ),
+      '#description' => t("For playlist players, it is suggested to enable Continuous play if setting Repeat to 'All'."),
       '#default_value' => $settings['repeat'],
     );
 
