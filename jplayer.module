@@ -68,7 +68,7 @@ function jplayer_field_formatter_info() {
   return array(
     'jplayer_player' => array(
       'label' => t('jPlayer - Player'),
-      'field types' => array('file'),
+      'field types' => array('file', 'text', 'link_field'),
       'description' => t('Display file fields as an HTML5-compatible with Flash-fallback media player.'),
       'settings' => array(
         'autoplay' => 0,

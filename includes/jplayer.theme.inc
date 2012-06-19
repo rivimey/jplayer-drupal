@@ -14,8 +14,9 @@ function template_preprocess_jplayer(&$vars) {
 
   $vars['mode'] = $vars['settings']['mode'];
 
-  $player = jplayer_sort_files($vars['items'], $vars['player_id'], $vars['mode']);
-
+  // Get the field info so we can figure out what type it is.
+  $field_info = field_info_field($vars['field_name']);
+  $player = jplayer_sort_files($vars['items'], $vars['player_id'], $vars['mode'], $field_info['type']);
   $vars['playlist'] = theme('jplayer_item_list', array('items' => $player['playlist']));
   $vars['type'] = $player['type'];
 
@@ -39,6 +40,7 @@ function template_preprocess_jplayer(&$vars) {
   drupal_add_js($player, 'setting');
 
   $vars['dynamic'] = jplayer_add_core_js();
+
 }
 
 /**
@@ -96,8 +98,19 @@ function theme_jplayer_item_list($variables) {
 
 /**
  * Filters an array of files into groups ready for jPlayer.
+ *
+ * @param $raw_files
+ *   an array of files to be included
+ * @param $player_id
+ *   a unique id for the player
+ * @param $type
+ *   either 'single' or 'playlist'
+ * @param $item_type
+ *   the field type for the files
+ * @return
+ *   a settings array of data being passed to jPlayer instance
  */
-function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single') {
+function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single', $item_type = 'file') {
   $video_extensions = array('m4v', 'mp4', 'ogv', 'webmv');
   $audio_extensions = array('mp3', 'm4a', 'oga', 'webma', 'wav');
   $poster_extensions = array('jpg', 'jpeg', 'png', 'gif');
@@ -115,7 +128,14 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single') 
   foreach ($raw_files as $delta => $item) {
     // Get file URL
     if (!isset($item['url'])) {
-      $item['url'] = file_create_url($item['uri']);
+      switch($item_type){
+        case 'file':
+          $item['url'] = file_create_url($item['uri']);
+          break;
+        case 'text':
+          $item['url'] = $item['safe_value'];
+          break;
+      }
     }
 
     // Get file extension
@@ -127,7 +147,18 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single') 
     // Get file label
     if (!isset($item['label'])) {
       if (empty($item['description'])) {
-        $item['label'] = $item['filename'];
+      switch($item_type){
+        case 'file':
+          $item['label'] = $item['filename'];
+          break;
+        case 'text':
+          $fileinfo = pathinfo($item['url']);
+          $item['label'] = urldecode($fileinfo['basename']);
+          break;
+        case 'link_field':
+          $item['label'] = $item['title'];
+          break;
+        }
       }
       else {
         $item['label'] = $item['description'];
