@@ -62,6 +62,35 @@ function jplayer_theme() {
 }
 
 /**
+ * Implements hook_views_api().
+ */
+function jplayer_views_api() {
+  return array(
+    'path' => drupal_get_path('module', 'jplayer') . '/includes',
+    'api' => 3.0,
+  );
+}
+
+/**
+ * Implements hook_library().
+ */
+function jplayer_library() {
+  $file = _jplayer_get_js();
+  $version = jplayer_get_version($file);
+
+  $libraries = array();
+  $libraries['jplayer'] = array(
+    'title' => 'jPlayer',
+    'website' => 'http://www.jplayer.org',
+    'version' => $version,
+    'js' => array(
+      $file => array(),
+    ),
+  );
+  return $libraries;
+}
+
+/**
  * Implements hook_field_formatter_info().
  */
 function jplayer_field_formatter_info() {
@@ -262,107 +291,90 @@ function jplayer_field_formatter_settings_summary($field, $instance, $view_mode)
 }
 
 /**
- * Implements hook_library().
- */
-function jplayer_library() {
-  $path = variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
-  $libraries = array();
-  $libraries['jplayer'] = array(
-    'title' => 'jPlayer',
-    'website' => 'http://www.jplayer.org',
-    'version' => '2.0',
-    'js' => array(
-      $path . '/jquery.jplayer.min.js' => array(),
-    ),
-  );
-  return $libraries;
-}
-
-/**
  * Return the version of jPlayer installed.
  *
- * @param $directory
- *   The directory to check for a jPlayer installation.
+ * @param string $file
+ *   File path of jPlayer file.
  *
- * @return
- *   An array containing 'version', 'major, and 'minor' keys representing the
- *   version of jPlayer installed, or FALSE if a valid version number was not
- *   found.
+ * @return string|bool
+ *   Version detected or FALSE.
  */
-function jplayer_get_version($directory = NULL) {
-  $version = 0;
-
-  if (!isset($directory)) {
-    $directory = variable_get('jplayer_directory', 'sites/all/libraries/jplayer');
+function jplayer_get_version($file = '') {
+  if (!$file) {
+    $file = _jplayer_get_js();
+  }
+  $style = 'full';
+  if (preg_match('/min/', $file)) {
+    $style = 'min';
   }
 
-  if (file_exists($directory . '/jquery.jplayer.min.js')) {
-    $contents = file_get_contents($directory . '/jquery.jplayer.min.js');
-  }
-  elseif (file_exists($directory . '/jquery.jplayer.js')) {
-    $contents = file_get_contents($directory . '/jquery.jplayer.js');
-  }
-  else {
-    return false;
-  }
+  $contents = file_get_contents($file);
 
-  $matches = array();
-  preg_match('/Version:?[ ]*([\d.]+)/i', $contents, $matches);
-
-  if (isset($matches[1])) {
-    $version = $matches[1];
-  }
-
-  $parts = explode('.', $version);
-
-  // Though other parts of the module may check for a specific version,
-  // checking for a positive integer is more of a sanity check here.
-  if ($version < 1 || !isset($parts[0]) || !isset($parts[1])) {
+  // No file data. Run away.
+  if (!$contents) {
     return FALSE;
   }
 
-  return array('version' => $version, 'major' => $parts[0], 'minor' => $parts[1]);
+  $matches = array();
+  $preg = '/Version:?[ ]*([\d.]+)/i';
+  if ($style == 'min') {
+    $preg = '/jPlayer ([\d.]+) for jQuery/';
+  }
+  preg_match($preg, $contents, $matches);
+
+  if (isset($matches[1])) {
+    return $matches[1];
+  }
+  return FALSE;
 }
 
 /**
- * Add core JS and CSS needed for jPlayer instances
+ * Add core JS and CSS needed for jPlayer instances.
+ *
+ * @return array
+ *   Form API attach.
  */
-function jplayer_add_core_js() {
+function _jplayer_js_attach() {
   $added = &drupal_static(__FUNCTION__, FALSE);
   if ($added) {
-    // Js was already loaded.
-    return;
+    // JS is already loaded.
+    return TRUE;
   }
-  $added = TRUE;
 
-  // Add global settings
+  // Add global settings.
   $settings = array(
     'jPlayer' => array(
-      'swfPath' => base_path() . variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
-      'showHour' => (boolean)variable_get('jplayer_showHour', FALSE),
-      'showMin' => (boolean)variable_get('jplayer_showMin', TRUE),
-      'showSec' => (boolean)variable_get('jplayer_showSec', TRUE),
-      'padHour' => (boolean)variable_get('jplayer_padHour', FALSE),
-      'padMin' => (boolean)variable_get('jplayer_padMin', TRUE),
-      'padSec' => (boolean)variable_get('jplayer_padSec', TRUE),
-      'sepHour' => variable_get('jplayer_sepHour', ':'),
-      'sepMin' => variable_get('jplayer_sepMin', ':'),
-      'sepSec' => variable_get('jplayer_sepSec', ''),
+      'swfPath'   => _jplayer_get_swf(),
+      'showHour'  => (boolean) variable_get('jplayer_showHour', FALSE),
+      'showMin'   => (boolean) variable_get('jplayer_showMin', TRUE),
+      'showSec'   => (boolean) variable_get('jplayer_showSec', TRUE),
+      'padHour'   => (boolean) variable_get('jplayer_padHour', FALSE),
+      'padMin'    => (boolean) variable_get('jplayer_padMin', TRUE),
+      'padSec'    => (boolean) variable_get('jplayer_padSec', TRUE),
+      'sepHour'   => variable_get('jplayer_sepHour', ':'),
+      'sepMin'    => variable_get('jplayer_sepMin', ':'),
+      'sepSec'    => variable_get('jplayer_sepSec', ''),
     ),
   );
   drupal_add_js($settings, array('type' => 'setting'));
 
+  $path = drupal_get_path('module', 'jplayer');
   $return = array(
     '#attached' => array(
+      // Base library.
       'library' => array(
         array('jplayer', 'jplayer'),
       ),
+      // Drupal specific JS.
       'js' => array(
-        drupal_get_path('module', 'jplayer') . '/theme/jplayer.js' => array('type' => 'file', 'scope' => 'footer', 'group' => JS_DEFAULT),
+        $path . '/theme/jplayer.js' => array(
+          'type'  => 'file',
+          'scope' => 'footer',
+          'group' => JS_DEFAULT,
+        ),
       ),
-      'css' => array(
-        drupal_get_path('module', 'jplayer') . '/theme/jplayer.css' => array('type' => 'file', 'group' => CSS_DEFAULT),
-      ),
+      // CSS of skin.
+      'css' => _jplayer_get_css(),
     ),
   );
 
@@ -372,16 +384,99 @@ function jplayer_add_core_js() {
     $return['additional_resources'] = $additional_resources;
   }
 
+  $added = TRUE;
   return $return;
 }
 
 /**
- * Implements hook_views_api().
+ * Return a CSS array for the theme.
+ *
+ * So far only one skin is acceptable because the HTML is different.
+ * Keeping it for the future..
+ *
+ * "See your future, be your future. May. make. make it. Make your future Danny"
+ *
+ * @return array
+ *   CSS array.
  */
-function jplayer_views_api() {
-  return array(
-    'path' => drupal_get_path('module', 'jplayer') . '/includes',
-    'api' => 3.0,
+function _jplayer_get_css() {
+  $return = array();
+  $opts = array(
+    'type'  => 'file',
+    'group' => CSS_DEFAULT,
   );
+
+  // Right now only the default skin (module) is avaialble.
+  $skin = NULL;
+  if (!$skin) {
+    $path = drupal_get_path('module', 'jplayer');
+    return array($path . '/theme/jplayer.css' => $opts);
+  }
+  else {
+    $lib = libraries_get_path('jplayer') . '/skin/' . $skin;
+    $file = $lib . '/' . $skin . '.css';
+    if (file_exists($file)) {
+      $return = array($file => $opts);
+    }
+    else {
+      $skin = 'jplayer.' . $skin;
+      $file = $lib . '/' . $skin . '.css';
+      if (file_exists($file)) {
+        $return = array($file => $opts);
+      }
+    }
+  }
+  return $return;
 }
 
+/**
+ * Finds the JS file available in the libraries directory.
+ *
+ * @return string|bool
+ *   Full file path or FALSE on failure.
+ */
+function _jplayer_get_js() {
+  $path = libraries_get_path('jplayer');
+  $player_files = array(
+    'min'   => '/jquery.jplayer.min.js',
+    'full'  => '/jquery.jplayer.js',
+  );
+
+  // Check main library directory.
+  foreach ($player_files as $type => $file) {
+    $return = $path . $file;
+    if (file_exists($return)) {
+      return $return;
+    }
+  }
+
+  // If they just unzipped the dl, the file is in the dist/jplayer folder.
+  $path .= '/dist/jplayer';
+  foreach ($player_files as $file) {
+    $return = $path . $file;
+    if (file_exists($return)) {
+      return $return;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Locates SWF file.
+ *
+ * @return string
+ *   SWF file path.
+ */
+function _jplayer_get_swf() {
+  $path = libraries_get_path('jplayer');
+  $file = '/jquery.jplayer.swf';
+  $full = $path . $file;
+  if (!file_exists($full)) {
+    $path .= '/dist/jplayer';
+    $dist = $path . $file;
+    if (file_exists($dist)) {
+      return $dist;
+    }
+  }
+  return $full;
+}

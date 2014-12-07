@@ -30,18 +30,17 @@ INSTALLATION
 
  1. Drop the 'jplayer' folder into the modules directory '/sites/all/modules/'.
 
- 2. Download jPlayer from http://www.jplayer.org/download/. The downloaded
-    directory only contains 2 files, 'jquery.jplayer.min.js' and
-    'Jplayer.swf'. Place these two files in 'sites/all/libraries/jplayer/'.
+ 2. Download jPlayer from http://www.jplayer.org/download/.
 
- 3. In your Drupal site, enable the module under Administration -> Modules
-    '?q=/admin/modules'.
+ 3. Expand the zip or tar.gz file and then copy the dist/jplayer folder to 'sites/all/libraries/jplayer/'.
 
- 4. Global admin settings for jPlayer can be found Administration ->
-    Configuration -> jPlayer '?q=admin/config/media/jplayer'.
+ 4. In your Drupal site, enable the module under Administration -> Modules.
 
- 5. When you manage the display of file fields within your content types 
-    '?q=admin/structure/types/manage/{type}/display', choose 'jPlayer - Player'
+ 5. Global admin settings for jPlayer can be found Administration ->
+    Configuration -> jPlayer 'admin/config/media/jplayer'.
+
+ 6. When you manage the display of file fields within your content types
+    'admin/structure/types/manage/{type}/display', choose 'jPlayer - Player'
     as the format. You can then configure the settings available for that
     instance.
 
@@ -146,14 +145,3 @@ http://www.jplayer.org/support/
 
 If the problem is with the jPlayer Drupal module, please file a support request
 at http://drupal.org/project/issues/jplayer.
-
-
-SPONSORSHIP
------------
-
-The D7 branch of this module is currently sponsored by Holy Trinity Brompton
-(http://www.htb.org.uk), and Cultivate4 (http://www.cultivatefour.com). Work has
-been undertaken by Jordan de Laune.
-
-The original D6 module was written by Nate Haug and was maintained by Blazej
-Owczarczyk.

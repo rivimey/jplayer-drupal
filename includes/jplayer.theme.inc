@@ -20,7 +20,7 @@ function template_preprocess_jplayer(&$vars) {
   $vars['playlist'] = theme('jplayer_item_list', array('items' => $player['playlist']));
   $vars['type'] = $player['type'];
 
-  // Add player settings
+  // Add player settings.
   $player = array(
     'jplayerInstances' => array(
       $vars['player_id'] => array(
@@ -29,8 +29,8 @@ function template_preprocess_jplayer(&$vars) {
         'supplied' => $player['extensions'],
         'preload' => $vars['settings']['preload'],
         'volume' => $vars['settings']['volume'] / 100,
-        'muted' => (boolean)$vars['settings']['muted'],
-        'autoplay' => (boolean)$vars['settings']['autoplay'],
+        'muted' => (boolean) $vars['settings']['muted'],
+        'autoplay' => (boolean) $vars['settings']['autoplay'],
         'repeat' => $vars['settings']['repeat'],
         'backgroundColor' => $vars['settings']['backgroundColor'],
         'continuous' => $vars['settings']['continuous'],
@@ -39,7 +39,7 @@ function template_preprocess_jplayer(&$vars) {
   );
   drupal_add_js($player, 'setting');
 
-  $vars['dynamic'] = jplayer_add_core_js();
+  $vars['dynamic'] = _jplayer_js_attach();
 
 }
 
@@ -60,6 +60,7 @@ function theme_jplayer_item_list($variables) {
   if (!empty($items)) {
     $output .= "<$type" . drupal_attributes($attributes) . '>';
     $num_items = count($items);
+    $data = '';
     foreach ($items as $i => $item) {
       $attributes = array();
       $children = array();
@@ -81,7 +82,12 @@ function theme_jplayer_item_list($variables) {
       }
       if (count($children) > 0) {
         // Render nested list.
-        $data .= theme_item_list(array('items' => $children, 'title' => NULL, 'type' => $type, 'attributes' => $attributes));
+        $data .= theme_item_list(array(
+          'items' => $children,
+          'title' => NULL,
+          'type' => $type,
+          'attributes' => $attributes,
+        ));
       }
       if ($i == 0) {
         $attributes['class'][] = 'first jp-playlist-first';
@@ -99,18 +105,19 @@ function theme_jplayer_item_list($variables) {
 /**
  * Filters an array of files into groups ready for jPlayer.
  *
- * @param $raw_files
+ * @param array $raw_files
  *   an array of files to be included
- * @param $player_id
+ * @param int $player_id
  *   a unique id for the player
- * @param $type
+ * @param string $type
  *   either 'single' or 'playlist'
- * @param $item_type
+ * @param string $item_type
  *   the field type for the files
- * @return
+ *
+ * @return array
  *   a settings array of data being passed to jPlayer instance
  */
-function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single', $item_type = 'file') {
+function jplayer_sort_files($raw_files = array(), $player_id = 0, $type = 'single', $item_type = 'file') {
   $video_extensions = array('m4v', 'mp4', 'ogv', 'webmv');
   $audio_extensions = array('mp3', 'm4a', 'oga', 'webma', 'wav');
   $poster_extensions = array('jpg', 'jpeg', 'png', 'gif');
@@ -124,40 +131,43 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single', 
   $extensions = array();
   $playlist = array();
 
-  // Look through all the files provided and see what we have
+  // Look through all the files provided and see what we have.
   foreach ($raw_files as $delta => $item) {
-    // Get file URL
+    // Get file URL.
     if (!isset($item['url'])) {
-      switch($item_type){
+      switch ($item_type) {
         case 'file':
           $item['url'] = file_create_url($item['uri']);
           break;
+
         case 'text':
           $item['url'] = $item['safe_value'];
           break;
       }
     }
 
-    // Get file extension
+    // Get file extension.
     if (!isset($item['ext'])) {
       $fileinfo = pathinfo($item['url']);
       $item['ext'] = $fileinfo['extension'];
     }
 
-    // Get file label
+    // Get file label.
     if (!isset($item['label'])) {
       if (empty($item['description'])) {
-      switch($item_type){
-        case 'file':
-          $item['label'] = $item['filename'];
-          break;
-        case 'text':
-          $fileinfo = pathinfo($item['url']);
-          $item['label'] = urldecode($fileinfo['basename']);
-          break;
-        case 'link_field':
-          $item['label'] = $item['title'];
-          break;
+        switch ($item_type) {
+          case 'file':
+            $item['label'] = $item['filename'];
+            break;
+
+          case 'text':
+            $fileinfo = pathinfo($item['url']);
+            $item['label'] = urldecode($fileinfo['basename']);
+            break;
+
+          case 'link_field':
+            $item['label'] = $item['title'];
+            break;
         }
       }
       else {
@@ -165,7 +175,7 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single', 
       }
     }
 
-    // Add file into correct group
+    // Add file into correct group.
     if (!isset($item['type'])) {
       if (in_array($item['ext'], $video_extensions)) {
         $videos = TRUE;
@@ -185,18 +195,17 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single', 
   }
 
   $num = 0;
+  $player_type = '';
   foreach ($media as $file) {
+    $player_type = 'audio';
     if ($videos == TRUE && $type != 'playlist') {
       if ($file['type'] == 'audio') {
         unset($file);
       }
-      $player_type = 'video';
+      $player_type = 'video jp-video-360p';
     }
     elseif ($videos == TRUE && $type == 'playlist') {
-      $player_type = 'video';
-    }
-    else {
-      $player_type = 'audio';
+      $player_type = 'video jp-video-360p';
     }
 
     if (isset($file) && $file['type'] == 'audio') {
@@ -222,7 +231,12 @@ function jplayer_sort_files($raw_files = array(), $player_id, $type = 'single', 
     $playlist[] = $item;
   }
 
-  return array('files' => $files, 'extensions' => implode(',', $extensions), 'playlist' => $playlist, 'type' => $player_type);
+  return array(
+    'files' => $files,
+    'extensions' => implode(',', $extensions),
+    'playlist' => $playlist,
+    'type' => $player_type,
+  );
 }
 
 /**
@@ -239,7 +253,7 @@ function template_preprocess_jplayer_view_playlist(&$vars) {
   $vars['playlist'] = theme('jplayer_item_list', array('items' => $player['playlist']));
   $vars['type'] = $player['type'];
 
-  // Add player settings
+  // Add player settings.
   $player = array(
     'jplayerInstances' => array(
       $vars['player_id'] => array(
@@ -248,8 +262,8 @@ function template_preprocess_jplayer_view_playlist(&$vars) {
         'supplied' => $player['extensions'],
         'preload' => $vars['settings']['preload'],
         'volume' => $vars['settings']['volume'] / 100,
-        'muted' => (boolean)$vars['settings']['muted'],
-        'autoplay' => (boolean)$vars['settings']['autoplay'],
+        'muted' => (boolean) $vars['settings']['muted'],
+        'autoplay' => (boolean) $vars['settings']['autoplay'],
         'repeat' => $vars['settings']['repeat'],
         'backgroundColor' => $vars['settings']['backgroundColor'],
       ),
@@ -257,17 +271,19 @@ function template_preprocess_jplayer_view_playlist(&$vars) {
   );
   drupal_add_js($player, 'setting');
 
-  $vars['dynamic'] = jplayer_add_core_js();
+  $vars['dynamic'] = _jplayer_js_attach();
 }
 
 /**
- * Return a unique ID for a jPlayer. This allows multiple embedded jPlayers to
- * point to an identical file on the same page.
+ * Return a unique ID for a jPlayer.
  *
- * @param $id
+ * This allows multiple embedded jPlayers to point to an identical file on the
+ * same page.
+ *
+ * @param string $id
  *   The ID to check for uniqueness.
  *
- * @return
+ * @return string
  *   A modified ID if the ID was not unique, or the same ID passed in if it was
  *   unique.
  */
@@ -293,4 +309,3 @@ function _jplayer_check_id($id) {
 
   return $id;
 }
-

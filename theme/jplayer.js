@@ -182,7 +182,7 @@
     var index = (current + 1 < playerSettings.files.length) ? current + 1 : 0;
     
     Drupal.jPlayer.setFiles(wrapper, player, index, true);
-  }
+  };
   
   Drupal.jPlayer.previous = function(wrapper, player) {
     var playerId = $(player).attr('id');
@@ -192,7 +192,7 @@
     var index = (current - 1 >= 0) ? current - 1 : playerSettings.files.length - 1;
     
     Drupal.jPlayer.setFiles(wrapper, player, index, true);
-  }
+  };
   
 })(jQuery);
 

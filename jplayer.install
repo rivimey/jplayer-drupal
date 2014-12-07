@@ -19,7 +19,7 @@ function jplayer_requirements($phase) {
   if ($phase == 'runtime') {
     $requirements['jplayer']['title'] = t('jPlayer');
     if ($jplayer_version = jplayer_get_version()) {
-      $requirements['jplayer']['value'] = $jplayer_version['version'];
+      $requirements['jplayer']['value'] = $jplayer_version;
       $requirements['jplayer']['severity'] = REQUIREMENT_OK;
     }
     else {
@@ -28,7 +28,6 @@ function jplayer_requirements($phase) {
       $requirements['jplayer']['severity'] = REQUIREMENT_ERROR;
     }
   }
-
   return $requirements;
 }
 

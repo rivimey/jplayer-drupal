@@ -5,7 +5,7 @@
  */
 ?>
 
-<div class="jp-<?php print $type; if($type == 'video') print ' jp-video-360p'; ?>">
+<div class="jp-<?php print $type; ?>">
   <div class="jp-type-playlist">
     <div id="<?php print $player_id; ?>" class="jp-jplayer"></div>
     <div id="<?php print $player_id; ?>_interface" class="jp-interface">
@@ -43,11 +43,10 @@
         <?php print $playlist; ?>
       <?php else: ?>
         <ul>
-          <li><?php print check_plain($label); ?></li>
+          <li><?php print check_plain($label);?></li>
         </ul>
       <?php endif; ?>
     </div>
   </div>
 </div>
-<?php print drupal_render($dynamic); ?>
-
+<?php print drupal_render($dynamic);?>

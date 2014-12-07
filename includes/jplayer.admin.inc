@@ -10,21 +10,6 @@
 function jplayer_settings_form($form, &$form_state) {
   $form = array();
 
-  $form['library'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Library'),
-    '#weight' => 0,
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-  );
-
-  $form['library']['jplayer_directory'] = array(
-    '#type' => 'textfield',
-    '#title' => t('jPlayer library directory'),
-    '#default_value' => variable_get('jplayer_directory', 'sites/all/libraries/jplayer'),
-    '#description' => t('Specify the path that contains the jPlayer library. The jquery.jplayer.min.js file should be in the root of this directory.'),
-  );
-
   $form['timeformat'] = array(
     '#type' => 'fieldset',
     '#title' => t('Time Format'),
@@ -124,19 +109,13 @@ function jplayer_settings_form($form, &$form_state) {
  * Validation for jplayer_settings_form().
  */
 function jplayer_settings_form_validate($form, &$form_state) {
-  $version = jplayer_get_version($form_state['values']['jplayer_directory']);
-  if (!is_array($version) || (int)$version['major'] != 2) {
-    form_error($form['library']['jplayer_directory'], t('Either the directory specified does not seem to contain the jPlayer library, or you are not using version 2 of jPlayer. Check to make sure that the jquery.player.min.js file is located within this directory.'));
-  }
-  else {
-    $form_state['values']['version'] = $version;
-  }
+
 }
 
 /**
  * Submit handler for jplayer_settings_form().
  */
 function jplayer_settings_form_submit($form, &$form_state) {
-  drupal_set_message(t('The jPlayer library (version @version) successfully found in the %directory directory.', array('@version' => $form_state['values']['version']['version'], '%directory' => $form_state['values']['jplayer_directory'])));
+
 }
 
