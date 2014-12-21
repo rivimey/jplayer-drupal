@@ -177,15 +177,16 @@ function jplayer_sort_files($raw_files = array(), $player_id = 0, $type = 'singl
 
     // Add file into correct group.
     if (!isset($item['type'])) {
-      if (in_array($item['ext'], $video_extensions)) {
+      $ext = strtolower($item['ext']);
+      if (in_array($ext, $video_extensions)) {
         $videos = TRUE;
         $item['type'] = 'video';
       }
-      elseif (in_array($item['ext'], $audio_extensions)) {
+      elseif (in_array($ext, $audio_extensions)) {
         $audio = TRUE;
         $item['type'] = 'audio';
       }
-      elseif (in_array($item['ext'], $poster_extensions)) {
+      elseif (in_array($ext, $poster_extensions)) {
         $poster = $item['url'];
         $item['type'] = 'poster';
       }
