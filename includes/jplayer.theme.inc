@@ -95,6 +95,7 @@ function theme_jplayer_item_list($variables) {
       if ($i == $num_items - 1) {
         $attributes['class'][] = 'last jp-playlist-last';
       }
+      $attributes['oncontextmenu'] = "return false;";
       $output .= '<li' . drupal_attributes($attributes) . '>' . $data . "</li>\n";
     }
     $output .= "</$type>";
@@ -209,10 +210,18 @@ function jplayer_sort_files($raw_files = array(), $player_id = 0, $type = 'singl
       $player_type = 'video jp-video-360p';
     }
 
+    $options = array(
+      'fragment' => '',
+      'attributes' => array(
+        'id' => $player_id . '_item_' . $num,
+        'tabindex' => 1,
+        'onclick' => 'return(false);',
+      ),
+    );
     if (isset($file) && $file['type'] == 'audio') {
       $files[][$file['ext']] = $file['url'];
       $extensions[] = $file['ext'];
-      $playlist[] = l($file['label'], $file['url'], array('attributes' => array('id' => $player_id . '_item_' . $num, 'tabindex' => 1)));
+      $playlist[] = l($file['label'], $file['url'], $options);
       $num++;
     }
     elseif (isset($file) && $file['type'] == 'video') {
@@ -221,7 +230,7 @@ function jplayer_sort_files($raw_files = array(), $player_id = 0, $type = 'singl
         $files[]['poster'] = $poster;
       }
       $extensions[] = $file['ext'];
-      $playlist[] = l($file['label'], $file['url'], array('attributes' => array('id' => $player_id . '_item_' . $num, 'tabindex' => 1)));
+      $playlist[] = l($file['label'], $file['url'], $options);
       $num++;
     }
   }
