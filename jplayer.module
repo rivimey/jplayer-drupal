@@ -206,7 +206,8 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
       '#title' => t('Preload media'),
       '#type' => 'select',
       '#options' => array(
-        'metadata' => t('No'),
+        'none' => t('No'),
+        'metadata' => t('Only metadata'),
         'auto' => t('Yes'),
       ),
       '#description' => t("Preloading media before it's requested isn't available in all browsers."),
