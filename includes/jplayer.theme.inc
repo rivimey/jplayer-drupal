@@ -276,6 +276,7 @@ function template_preprocess_jplayer_view_playlist(&$vars) {
         'autoplay' => (boolean) $vars['settings']['autoplay'],
         'repeat' => $vars['settings']['repeat'],
         'backgroundColor' => $vars['settings']['backgroundColor'],
+        'continuous' => $vars['settings']['continuous'],
       ),
     ),
   );
