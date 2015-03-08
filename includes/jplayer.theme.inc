@@ -6,6 +6,9 @@
 
 /**
  * Preprocess function for a player.
+ *
+ * @param array $vars
+ *   Preprocess variables.
  */
 function template_preprocess_jplayer(&$vars) {
   // Determine a unique player ID.
@@ -45,6 +48,12 @@ function template_preprocess_jplayer(&$vars) {
 
 /**
  * Modified version of theme_item_list().
+ *
+ * @param array $variables
+ *   Array of variables.
+ *
+ * @return string
+ *   Formatted string.
  */
 function theme_jplayer_item_list($variables) {
   $items = $variables['items'];
@@ -107,13 +116,13 @@ function theme_jplayer_item_list($variables) {
  * Filters an array of files into groups ready for jPlayer.
  *
  * @param array $raw_files
- *   an array of files to be included
+ *   An array of files to be included.
  * @param int $player_id
- *   a unique id for the player
+ *   A unique id for the player.
  * @param string $type
- *   either 'single' or 'playlist'
+ *   Either 'single' or 'playlist'.
  * @param string $item_type
- *   the field type for the files
+ *   The field type for the files.
  *
  * @return array
  *   a settings array of data being passed to jPlayer instance
@@ -147,10 +156,20 @@ function jplayer_sort_files($raw_files = array(), $player_id = 0, $type = 'singl
       }
     }
 
-    // Get file extension.
+    // Get file extension from pathinfo or link_field title-attribute
     if (!isset($item['ext'])) {
       $fileinfo = pathinfo($item['url']);
-      $item['ext'] = $fileinfo['extension'];
+      // If the path does not have an extension, no extension element will be
+      // returned (see http://php.net/manual/en/function.pathinfo.php)
+      if (isset($item['attributes']['title']) && !isset($fileinfo['extension'])) {
+        $item['ext'] = $item['attributes']['title'];
+      }
+      elseif (isset($item['attributes']['title']) && !in_array($fileinfo['extension'], $audio_extensions) && !in_array($fileinfo['extension'], $video_extensions) && !in_array($fileinfo['extension'], $poster_extensions)) {
+        $item['ext'] = $item['attributes']['title'];
+      }
+      else {
+        $item['ext'] = $fileinfo['extension'];
+      }
     }
 
     // Get file label.
@@ -251,6 +270,9 @@ function jplayer_sort_files($raw_files = array(), $player_id = 0, $type = 'singl
 
 /**
  * Preprocess function for jplayer.tpl.php when displaying a view as a playlist.
+ *
+ * @param array $vars
+ *   Variable array.
  */
 function template_preprocess_jplayer_view_playlist(&$vars) {
   $view = $vars['view'];
