@@ -16,7 +16,7 @@ function jplayer_views_plugins() {
         'title' => t('jPlayer'),
         'help' => t('Display audio files from different nodes as a jPlayer playlist.'),
         'handler' => 'jplayer_style_plugin',
-        'path' => "$path/includes",
+        'path' => $path . '/includes',
         'uses row plugin' => TRUE,
         'uses options' => TRUE,
         'uses grouping' => FALSE,

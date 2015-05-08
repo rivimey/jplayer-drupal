@@ -44,6 +44,9 @@ class jplayer_style_plugin extends views_plugin_style {
       $options[''] = t('No available fields');
     }
 
+    $desc = t('Select the fields that will contain a file path to an mp3 file. ' .
+              'If multiple fields are selected, the first one that contains a value will be used. ' .
+              'This field will be hidden from view unless there are no other fields visible.');
     $form['path_field'] = array(
       '#type' => 'select',
       '#title' => t('File path fields'),
@@ -51,7 +54,7 @@ class jplayer_style_plugin extends views_plugin_style {
       '#multiple' => TRUE,
       '#size' => 4,
       '#default_value' => $this->options['path_field'],
-      '#description' => t('Select the fields that will contain a file path to an mp3 file. If multiple fields are selected, the first one that contains a value will be used. This field will be hidden from view unless there are no other fields visible'),
+      '#description' => $desc,
       '#weight' => -5,
     );
 
@@ -75,7 +78,12 @@ class jplayer_style_plugin extends views_plugin_style {
 
     // Ensure that we're using the field row style.
     if (!$this->row_plugin->uses_fields()) {
-      $errors[] = t('Display "@display" uses the "@style" row style, but the jPlayer display style requires use of the "Fields" row style.', array('@display' => $this->display->display_title, '@style' => $this->row_plugin->definition['title']));
+      $errors[] = t('Display "@display" uses the "@style" row style, but the jPlayer display style requires use of the "Fields" row style.',
+        array(
+          '@display' => $this->display->display_title,
+          '@style' => $this->row_plugin->definition['title'],
+        )
+      );
     }
 
     // Ensure that a file path field is selected.
