@@ -29,20 +29,8 @@ function jplayer_menu() {
  * Implements hook_theme().
  */
 function jplayer_theme() {
-  return array(
-    'jplayer' => array(
-      'template' => 'theme/jplayer',
-      'variables' => array(
-        'entity_type' => NULL,
-        'entity' => NULL,
-        'field_name' => NULL,
-        'items' => array(),
-        'settings' => array(),
-        'type' => '',
-        'playlist' => '',
-      ),
-      'file' => 'includes/jplayer.theme.inc',
-    ),
+  $base_template = array(
+    // variant of item_list used for playlists
     'jplayer_item_list' => array(
       'render element' => 'element',
       'file' => 'includes/jplayer.theme.inc',
@@ -53,12 +41,50 @@ function jplayer_theme() {
         'attributes' => array(),
       ),
     ),
-    'jplayer_view_playlist' => array(
-      'template' => 'theme/jplayer',
-      'arguments' => array('view' => NULL, 'items' => NULL),
-      'file' => 'includes/jplayer.theme.inc',
-    ),
   );
+  
+  $template_jplayer = array(
+    // deal with the single-field-in-a-node case.
+    'template' => 'theme/jplayer',
+    'variables' => array(
+      'entity_type' => NULL,
+      'entity' => NULL,
+      'field_name' => NULL,
+      'items' => array(),
+      'settings' => array(),
+      'type' => '',
+      'playlist' => '',
+    ),
+    'file' => 'includes/jplayer.theme.inc',
+  );
+
+  $template_views = array(
+    // deal with the single-field-in-a-node case.
+    'template' => 'theme/jplayer',
+    'variables' => array(
+      'entity_type' => NULL,
+      'entity' => NULL,
+      'field_name' => NULL,
+      'items' => array(),
+      'settings' => array(),
+      'type' => '',
+      'playlist' => '',
+    ),
+    'file' => 'includes/jplayer.theme.inc',
+  );
+
+  $skins = _jplayer_known_skins();
+  foreach ($skins as $name => $skin) {
+    $name_field = 'jplayer_field_' . $name;
+    $base_template[$name_field] = $template_jplayer;
+    $base_template[$name_field]['template'] = $name_field;
+
+    $name_view = 'jplayer_views_' . $name;
+    $base_template[$name_view] = $template_views;
+    $base_template[$name_view]['template'] = $name_view;
+  }
+
+  return $base_template;
 }
 
 /**
@@ -94,6 +120,14 @@ function jplayer_library() {
  * Implements hook_field_formatter_info().
  */
 function jplayer_field_formatter_info() {
+  $skins = _jplayer_known_skins();
+  if (!empty($skins)) {
+    reset($skins);
+    $default_skin = key($skins);
+  }
+  else {
+    $default_skin = '- no skin -';
+  }
   return array(
     'jplayer_player' => array(
       'label' => t('jPlayer - Player'),
@@ -109,6 +143,7 @@ function jplayer_field_formatter_info() {
         'repeat' => 'none',
         'backgroundColor' => '000000',
         'mode' => 'playlist',
+        'skin' => $default_skin,
       ),
     ),
   );
@@ -164,6 +199,18 @@ function jplayer_field_formatter_settings_form($field, $instance, $view_mode, $f
         'playlist' => t('Playlist'),
       ),
       '#default_value' => $settings['mode'],
+    );
+
+    $opts = array();
+    $skins = _jplayer_known_skins();
+    foreach ($skins as $id => $details) {
+      $opts[$id] = $details['label'];
+    }
+    $form['skin'] = array(
+      '#title' => t('Skin'),
+      '#type' => 'select',
+      '#options' => $opts,
+      '#default_value' => $settings['skin'],
     );
 
     $form['continuous'] = array(
@@ -304,10 +351,6 @@ function jplayer_get_version($file = '') {
   if (!$file) {
     $file = _jplayer_get_js();
   }
-  $style = 'full';
-  if (preg_match('/min/', $file)) {
-    $style = 'min';
-  }
 
   $contents = file_get_contents($file);
 
@@ -318,15 +361,18 @@ function jplayer_get_version($file = '') {
 
   $matches = array();
   $preg = '/Version:?[ ]*([\d.]+)/i';
-  if ($style == 'min') {
-    $preg = '/jPlayer ([\d.]+) for jQuery/';
-  }
   preg_match($preg, $contents, $matches);
 
-  if (isset($matches[1])) {
-    return $matches[1];
+  if (!isset($matches[1])) {
+    // This style was used for minified versions.
+    $preg = '/jPlayer ([\d.]+) for jQuery/';
+    preg_match($preg, $contents, $matches);
+
+    if (!isset($matches[1])) {
+      return FALSE;
+    }
   }
-  return FALSE;
+  return $matches[1];
 }
 
 /**
@@ -335,11 +381,11 @@ function jplayer_get_version($file = '') {
  * @return array
  *   Form API attach.
  */
-function _jplayer_js_attach() {
+function _jplayer_js_attach($skin) {
   $added = &drupal_static(__FUNCTION__, FALSE);
   if ($added) {
     // JS is already loaded.
-    return TRUE;
+    return array();
   }
 
   // Add global settings.
@@ -375,7 +421,7 @@ function _jplayer_js_attach() {
         ),
       ),
       // CSS of skin.
-      'css' => _jplayer_get_css(),
+      'css' => _jplayer_get_css($skin),
     ),
   );
 
@@ -400,28 +446,23 @@ function _jplayer_js_attach() {
  * @return array
  *   CSS array.
  */
-function _jplayer_get_css() {
+function _jplayer_get_css($skin) {
   $return = array();
   $opts = array(
     'type'  => 'file',
     'group' => CSS_DEFAULT,
   );
 
-  // Right now only the default skin (module) is avaialble.
-  $skin = NULL;
-  if (!$skin) {
+  if ($skin) {
     $path = drupal_get_path('module', 'jplayer');
-    return array($path . '/theme/jplayer.css' => $opts);
-  }
-  else {
-    $lib = libraries_get_path('jplayer') . '/skin/' . $skin;
-    $file = $lib . '/' . $skin . '.css';
+    $skindir = $path . '/theme/skin/' . $skin;
+    $file = $skindir . '/css/' . $skin . '.css';
     if (file_exists($file)) {
       $return = array($file => $opts);
     }
     else {
       $skin = 'jplayer.' . $skin;
-      $file = $lib . '/' . $skin . '.css';
+      $file = $skindir . '/css/' . $skin . '.css';
       if (file_exists($file)) {
         $return = array($file => $opts);
       }
@@ -480,4 +521,46 @@ function _jplayer_get_swf() {
     }
   }
   return $full;
+}
+
+/**
+ * Return information about available skins.
+ *
+ * @return array
+ *  Array of arrays describing available skins.
+ */
+function _jplayer_known_skins() {
+  $path = drupal_get_path('module', 'jplayer');
+
+  $skins = array(
+
+    'bluemonday' => array(
+      'label' => t('Blue Monday'),
+      'description' => t('Standard jPlayer skin, a blue and grey rectangular layout.'),
+      'location' => $path . 'theme/skin/blue.monday',
+      'css' => array(
+        'css/jplayer.css',
+      ),
+      // this theme copes with all varieties of player in one.
+      'theme' => 'jplayer_bluemonday',
+    ),
+
+    'pinkflag' => array(
+      'label' => t('Pink Flag'),
+      'description' => t('Standard jPlayer skin, a pink and purple square arrangement.'),
+      'location' => $path . 'theme/skin/pink.flag',
+      'css' => array(
+        'css/jplayer.css',
+      ),
+      // this theme uses three varieties of theme to cover the modes.
+      'theme' => array(
+        'audio-single' => 'jplayer_pinkflag_audio_single',
+        'audio-playlist' => 'jplayer_pinkflag_audio_playlist',
+        'audio-stream' => 'jplayer_pinkflag_audio_single',
+        'video-single' => 'jplayer_pinkflag',
+        'video-playlist' => 'jplayer_pinkflag',
+      ),
+    )
+  );
+  return $skins;
 }
