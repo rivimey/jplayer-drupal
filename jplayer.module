@@ -77,11 +77,11 @@ function jplayer_theme() {
   foreach ($skins as $name => $skin) {
     $name_field = 'jplayer_field_' . $name;
     $base_template[$name_field] = $template_jplayer;
-    $base_template[$name_field]['template'] = $name_field;
+    $base_template[$name_field]['template'] = 'theme/' . $name_field;
 
     $name_view = 'jplayer_views_' . $name;
     $base_template[$name_view] = $template_views;
-    $base_template[$name_view]['template'] = $name_view;
+    $base_template[$name_view]['template'] = 'theme/' . $name_view;
   }
 
   return $base_template;
@@ -524,6 +524,20 @@ function _jplayer_get_swf() {
 }
 
 /**
+ * Retrieve a given skin property.
+ *
+ * @param $skin
+ * @param $property
+ * @return mixed
+ */
+function _jplayer_get_skin_property($skin, $property) {
+  $props = _jplayer_known_skins();
+  $skinprops = $props[$skin];
+
+  return $skinprops[$property];
+}
+
+/**
  * Return information about available skins.
  *
  * @return array
@@ -537,20 +551,39 @@ function _jplayer_known_skins() {
     'bluemonday' => array(
       'label' => t('Blue Monday'),
       'description' => t('Standard jPlayer skin, a blue and grey rectangular layout.'),
-      'location' => $path . 'theme/skin/blue.monday',
-      'css' => array(
-        'css/jplayer.css',
+      'location' => $path . '/theme/skin/blue.monday',
+      // Template html by player mode.
+      'templates' => array(
+        'audio' => array(
+          'jplayer.blue.monday.audio.playlist.tpl.php',
+        ),
+        'video' => array(
+          'jplayer.blue.monday.video.playlist.tpl.php',
+        ),
       ),
-      // this theme copes with all varieties of player in one.
+      // Array of css files to be included.
+      'css' => array(
+        'css/jplayer.blue.monday.min.css',
+      ),
+      // this theme copes with all varieties of player in one theme call.
       'theme' => 'jplayer_bluemonday',
     ),
 
     'pinkflag' => array(
       'label' => t('Pink Flag'),
       'description' => t('Standard jPlayer skin, a pink and purple square arrangement.'),
-      'location' => $path . 'theme/skin/pink.flag',
+      'location' => $path . '/theme/skin/pink.flag',
+      'templates' => array(
+        'audio' => array(
+          'jplayer.pink.flag.audio.playlist.tpl.php',
+        ),
+        'video' => array(
+          'jplayer.pink.flag.video.playlist.tpl.php',
+        ),
+      ),
+      // Array of css files to be included.
       'css' => array(
-        'css/jplayer.css',
+        'css/jplayer.pink.flag.min.css',
       ),
       // this theme uses three varieties of theme to cover the modes.
       'theme' => array(

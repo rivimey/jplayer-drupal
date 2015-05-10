@@ -31,7 +31,7 @@
         var playerId = $(this).attr('id');
         var playerSettings = Drupal.settings.jplayerInstances[playerId];
         var type = $(this).parent().attr('class');
-        player.playerType = $(this).parent().attr('class');
+        player.playerType = type;
         
         if (type == 'jp-type-single') {
           // Initialise single player
