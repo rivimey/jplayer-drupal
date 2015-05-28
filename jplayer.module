@@ -26,68 +26,6 @@ function jplayer_menu() {
 }
 
 /**
- * Implements hook_theme().
- */
-function jplayer_theme() {
-  $base_template = array(
-    // variant of item_list used for playlists
-    'jplayer_item_list' => array(
-      'render element' => 'element',
-      'file' => 'includes/jplayer.theme.inc',
-      'variables' => array(
-        'items' => array(),
-        'title' => NULL,
-        'type' => 'ul',
-        'attributes' => array(),
-      ),
-    ),
-  );
-  
-  $template_jplayer = array(
-    // deal with the single-field-in-a-node case.
-    'template' => 'theme/jplayer',
-    'variables' => array(
-      'entity_type' => NULL,
-      'entity' => NULL,
-      'field_name' => NULL,
-      'items' => array(),
-      'settings' => array(),
-      'type' => '',
-      'playlist' => '',
-    ),
-    'file' => 'includes/jplayer.theme.inc',
-  );
-
-  $template_views = array(
-    // deal with the single-field-in-a-node case.
-    'template' => 'theme/jplayer',
-    'variables' => array(
-      'entity_type' => NULL,
-      'entity' => NULL,
-      'field_name' => NULL,
-      'items' => array(),
-      'settings' => array(),
-      'type' => '',
-      'playlist' => '',
-    ),
-    'file' => 'includes/jplayer.theme.inc',
-  );
-
-  $skins = _jplayer_known_skins();
-  foreach ($skins as $name => $skin) {
-    $name_field = 'jplayer_field_' . $name;
-    $base_template[$name_field] = $template_jplayer;
-    $base_template[$name_field]['template'] = 'theme/' . $name_field;
-
-    $name_view = 'jplayer_views_' . $name;
-    $base_template[$name_view] = $template_views;
-    $base_template[$name_view]['template'] = 'theme/' . $name_view;
-  }
-
-  return $base_template;
-}
-
-/**
  * Implements hook_views_api().
  */
 function jplayer_views_api() {
@@ -114,6 +52,32 @@ function jplayer_library() {
     ),
   );
   return $libraries;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function jplayer_theme() {
+  $base_template = array(
+    // variant of item_list used for playlists
+    'jplayer_item_list' => array(
+      'render element' => 'element',
+      'file' => 'includes/jplayer.theme.inc',
+      'variables' => array(
+        'items' => array(),
+        'title' => NULL,
+        'type' => 'ul',
+        'attributes' => array(),
+      ),
+    ),
+    'jplayer_field' => array(
+      'render element' => 'element',
+      'file' => 'includes/jplayer.theme.inc',
+      'function' => 'theme_jplayer_field',
+    ),
+  );
+
+  return $base_template;
 }
 
 /**
@@ -158,23 +122,20 @@ function jplayer_field_formatter_view($entity_type, $entity, $field, $instance, 
   switch ($display['type']) {
     case 'jplayer_player':
       if (!empty($items)) {
-        $output = theme(
-          'jplayer',
-          array(
-            'entity_type' => $entity_type,
-            'entity' => $entity,
-            'field_name' => $instance['field_name'],
-            'items' => $items,
-            'settings' => $display['settings'],
-          )
+
+        $variables = array(
+          'entity_type' => $entity_type,
+          'entity' => $entity,
+          'field_name' => $instance['field_name'],
+          'items' => $items,
+          'settings' => $display['settings'],
+        );
+        $element = array(
+          'jplayer' => array(
+            '#markup' => theme('jplayer_field', $variables),
+          ),
         );
       }
-      else {
-        return array();
-      }
-      $element[0] = array(
-        '#markup' => $output,
-      );
       break;
   }
 

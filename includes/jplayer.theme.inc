@@ -5,14 +5,14 @@
  */
 
 /**
- * Preprocess function for a player.
+ * Preprocess function for a player.tpl.php when displaying a node.
  *
  * @param array $vars
  *   Preprocess variables.
  * @throws \Exception
  *   Calls code that calls theme(), which can throw an Exception().
  */
-function template_preprocess_jplayer(&$vars) {
+function OLD_template_preprocess_jplayer(&$vars) {
   // Determine a unique player ID.
   $ids = entity_extract_ids($vars['entity_type'], $vars['entity']);
 
@@ -36,7 +36,7 @@ function template_preprocess_jplayer(&$vars) {
  * @throws \Exception
  *   Calls code that calls theme(), which can throw an Exception().
  */
-function template_preprocess_jplayer_view_playlist(&$vars) {
+function OLD_template_preprocess_jplayer_view_playlist(&$vars) {
   $view = $vars['view'];
   $vars['settings'] = $view->style_plugin->options;
 
@@ -102,6 +102,104 @@ function _jplayer_preprocess_template_common($player, &$vars) {
 }
 
 /**
+ * Implements theme_HOOK().
+ *
+ * Wrapper theme code for jplayer.
+ *
+ * @param array $variables
+ *   Array of theme variables.
+ *
+ * @return string
+ *   The renderable array for a jplayer instance.
+ */
+function theme_jplayer_field($variables) {
+  $ids = entity_extract_ids($variables['entity_type'], $variables['entity']);
+
+  // TODO: should use drupal's drupal_html_class here instead?
+  $css_field_name = str_replace('_', '-', $variables['field_name']);
+  $player_id = 'jplayer-' . $variables['entity_type'] . '-' . $ids[0] . '-' . $css_field_name;
+  $variables['player_id'] = _jplayer_check_id($player_id);
+
+  // Get the field info so we can figure out what type it is.
+  $field_info = field_info_field($variables['field_name']);
+  $player = jplayer_sort_files($variables['items'], $variables['player_id'], $variables['settings']['mode'], $field_info['type']);
+
+  $output = array();
+
+  // Add player settings.
+  $playerInstance = array(
+    'jplayerInstances' => array(
+      $variables['player_id'] => array(
+        'files' => $player['files'],
+        'mode' => $variables['settings']['mode'],
+        'skin' => $variables['settings']['skin'],
+        'solution' => $variables['settings']['solution'],
+        'supplied' => $player['extensions'],
+        'preload' => $variables['settings']['preload'],
+        'volume' => $variables['settings']['volume'] / 100,
+        'muted' => (boolean) $variables['settings']['muted'],
+        'autoplay' => (boolean) $variables['settings']['autoplay'],
+        'repeat' => $variables['settings']['repeat'],
+        'backgroundColor' => $variables['settings']['backgroundColor'],
+        'continuous' => $variables['settings']['continuous'],
+      ),
+    ),
+  );
+  drupal_add_js($playerInstance, 'setting');
+
+  $output['commonfiles'] = _jplayer_js_attach($variables['skin']);
+
+  $item_variables = array(
+    'items' => $player['playlist'],
+    'skin' => $variables['skin'],
+    'mode' => $variables['mode'],
+  );
+  $output['playlist'] = theme('jplayer_item_list', $item_variables);
+
+  $skin = $variables['settings']['skin'];
+  $templates = _jplayer_get_skin_property($skin, 'templates');
+  $location = _jplayer_get_skin_property($skin, 'location');
+  $cssfiles = _jplayer_get_skin_property($skin, 'css');
+
+  // Attach the CSS files required by the skin. Normally, just use 1 file!
+  // TODO: ensure only one copy of each file per page.
+  $css_opts = array(
+    'type'  => 'file',
+    'group' => CSS_DEFAULT,
+  );
+  $css_attached = array();
+  foreach ($cssfiles as $css_file) {
+    $css_path = $location . '/' . $css_file;
+    if (!empty($css_file) && file_exists($css_path)) {
+      $css_attached[$css_path] = $css_opts;
+    }
+  }
+  if (!empty($css_attached)) {
+    $output['skinfiles'] = array(
+      '#attached' => array(
+        // CSS of skin.
+        'css' => $css_attached,
+      ),
+    );
+  }
+
+  // Find and read the html for the skin.
+  $tplfile = $templates[$player['type']][0];
+  $tpl = $location . '/' . $tplfile;
+  if (!empty($tplfile) && file_exists($tpl)) {
+    $content = file_get_contents($tpl);
+    $output['skin'] = array(
+      '#type' => 'markup',
+      '#markup' => $content,
+    );
+  }
+  dpm($output);
+  return $output;
+}
+
+/**
+ * Implements theme_HOOK().
+ *
  * Modified version of theme_item_list().
  *
  * Render an item_list without an enclosing div class item-list, with additional
@@ -224,11 +322,11 @@ function jplayer_sort_files($raw_files = array(), $player_id = 0, $player_mode =
   $result = _jplayer_make_playlist($player_id, $media, $player_mode, $player_type, $seen_type['poster_url']);
 
   // Enforce 'single' players by returning only the first item.
-  if ($player_mode == 'single') {
-    $item = array_shift($result['playlist']);
-    $result['playlist'] = array();
-    $result['playlist'][] = $item;
-  }
+//  if ($player_mode == 'single') {
+//    $item = array_shift($result['playlist']);
+//    $result['playlist'] = array();
+//    $result['playlist'][] = $item;
+//  }
 
   return $result;
 }

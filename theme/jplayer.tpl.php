@@ -4,12 +4,13 @@
  * Provide the HTML output for a video jPlayer interface.
  */
 
+$skin = $settings['skin'];
 $templates = _jplayer_get_skin_property($skin, 'templates');
 $location = _jplayer_get_skin_property($skin, 'location');
 $css = _jplayer_get_skin_property($skin, 'css');
 $cssfile = $css[0];
 $css = $location . '/' . $cssfile;
-$tplfile = $templates[$type][0];
+$tplfile = $templates['audio'][0];
 $tpl = $location . '/' . $tplfile;
 
 if (!empty($cssfile) && file_exists($css)) {
