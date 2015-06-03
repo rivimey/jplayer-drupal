@@ -70,10 +70,17 @@ function jplayer_theme() {
         'attributes' => array(),
       ),
     ),
+    // Theme used when calling from Field display
     'jplayer_field' => array(
       'render element' => 'element',
       'file' => 'includes/jplayer.theme.inc',
       'function' => 'theme_jplayer_field',
+    ),
+    // Theme used when calling from Views plugin
+    'jplayer_views' => array(
+      'render element' => 'element',
+      'file' => 'includes/jplayer.theme.inc',
+      'function' => 'theme_jplayer_views',
     ),
   );
 
@@ -123,16 +130,15 @@ function jplayer_field_formatter_view($entity_type, $entity, $field, $instance, 
     case 'jplayer_player':
       if (!empty($items)) {
 
-        $variables = array(
-          'entity_type' => $entity_type,
-          'entity' => $entity,
-          'field_name' => $instance['field_name'],
-          'items' => $items,
-          'settings' => $display['settings'],
-        );
-        $element = array(
+        $element[0] = array(
           'jplayer' => array(
-            '#markup' => theme('jplayer_field', $variables),
+            '#type' => 'theme',
+            '#theme' => 'jplayer_field',
+            '#entity_type' => $entity_type,
+            '#entity' => $entity,
+            '#field_name' => $instance['field_name'],
+            '#items' => $items,
+            '#settings' => $display['settings'],
           ),
         );
       }

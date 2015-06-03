@@ -113,53 +113,61 @@ function _jplayer_preprocess_template_common($player, &$vars) {
  *   The renderable array for a jplayer instance.
  */
 function theme_jplayer_field($variables) {
-  $ids = entity_extract_ids($variables['entity_type'], $variables['entity']);
+  $element = $variables['element'];
+  $ids = entity_extract_ids($element['#entity_type'], $element['#entity']);
 
   // TODO: should use drupal's drupal_html_class here instead?
-  $css_field_name = str_replace('_', '-', $variables['field_name']);
-  $player_id = 'jplayer-' . $variables['entity_type'] . '-' . $ids[0] . '-' . $css_field_name;
-  $variables['player_id'] = _jplayer_check_id($player_id);
+  $css_field_name = str_replace('_', '-', $element['#field_name']);
+  $player_id = 'jplayer-' . $element['#entity_type'] . '-' . $ids[0] . '-' . $css_field_name;
+  $element['#player_id'] = _jplayer_check_id($player_id);
 
   // Get the field info so we can figure out what type it is.
-  $field_info = field_info_field($variables['field_name']);
-  $player = jplayer_sort_files($variables['items'], $variables['player_id'], $variables['settings']['mode'], $field_info['type']);
+  $field_info = field_info_field($element['#field_name']);
+  $player = jplayer_sort_files($element['#items'], $element['player_id'], $element['#settings']['mode'], $field_info['type']);
 
   $output = array();
 
   // Add player settings.
   $playerInstance = array(
     'jplayerInstances' => array(
-      $variables['player_id'] => array(
+      $element['player_id'] => array(
         'files' => $player['files'],
-        'mode' => $variables['settings']['mode'],
-        'skin' => $variables['settings']['skin'],
-        'solution' => $variables['settings']['solution'],
+        'mode' => $element['#settings']['mode'],
+        'skin' => $element['#settings']['skin'],
+        'solution' => $element['#settings']['solution'],
         'supplied' => $player['extensions'],
-        'preload' => $variables['settings']['preload'],
-        'volume' => $variables['settings']['volume'] / 100,
-        'muted' => (boolean) $variables['settings']['muted'],
-        'autoplay' => (boolean) $variables['settings']['autoplay'],
-        'repeat' => $variables['settings']['repeat'],
-        'backgroundColor' => $variables['settings']['backgroundColor'],
-        'continuous' => $variables['settings']['continuous'],
+        'preload' => $element['#settings']['preload'],
+        'volume' => $element['#settings']['volume'] / 100,
+        'muted' => (boolean) $element['#settings']['muted'],
+        'autoplay' => (boolean) $element['#settings']['autoplay'],
+        'repeat' => $element['#settings']['repeat'],
+        'backgroundColor' => $element['#settings']['backgroundColor'],
+        'continuous' => $element['#settings']['continuous'],
       ),
     ),
   );
   drupal_add_js($playerInstance, 'setting');
 
-  $output['commonfiles'] = _jplayer_js_attach($variables['skin']);
+  $commonfiles = _jplayer_js_attach($element['skin']);
+  if (!empty($commonfiles)) {
+    $output['commonfiles'] = $commonfiles;
+  }
 
   $item_variables = array(
     'items' => $player['playlist'],
-    'skin' => $variables['skin'],
-    'mode' => $variables['mode'],
+    'player_id' => $element['#player_id'],
+    'skin' => $element['#settings']['skin'],
+    'mode' => $element['#settings']['mode'],
   );
-  $output['playlist'] = theme('jplayer_item_list', $item_variables);
+  $item_variables['playlist'] = theme('jplayer_item_list', $item_variables);
 
-  $skin = $variables['settings']['skin'];
+  $skin = $element['#settings']['skin'];
   $templates = _jplayer_get_skin_property($skin, 'templates');
   $location = _jplayer_get_skin_property($skin, 'location');
   $cssfiles = _jplayer_get_skin_property($skin, 'css');
+
+  dpm($element);
+  dpm($playerInstance);
 
   // Attach the CSS files required by the skin. Normally, just use 1 file!
   // TODO: ensure only one copy of each file per page.
@@ -187,14 +195,13 @@ function theme_jplayer_field($variables) {
   $tplfile = $templates[$player['type']][0];
   $tpl = $location . '/' . $tplfile;
   if (!empty($tplfile) && file_exists($tpl)) {
-    $content = file_get_contents($tpl);
+    $content =  theme_render_template($tpl, $item_variables);
     $output['skin'] = array(
       '#type' => 'markup',
       '#markup' => $content,
     );
   }
-  dpm($output);
-  return $output;
+  return drupal_render($output);
 }
 
 /**
@@ -498,8 +505,8 @@ function _jplayer_get_item_url($item_type, $item) {
  *   The returned item, with 'ext' and 'type' set if needed.
  */
 function _jplayer_group_items_by_type($item, &$seen_type) {
-  $video_extensions = array('m4v', 'mp4', 'ogv', 'webmv');
-  $audio_extensions = array('mp3', 'm4a', 'oga', 'webma', 'wav');
+  $video_extensions = array('m4v', 'mp4', 'ogv', 'ogm', 'webmv');
+  $audio_extensions = array('mp3', 'm4a', 'oga', 'webma', 'wav', 'ogg');
   $poster_extensions = array('jpg', 'jpeg', 'png', 'gif');
 
   // TODO: Include HOOK here to enable the extensions lists to be modified?
