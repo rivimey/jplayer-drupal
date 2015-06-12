@@ -130,7 +130,7 @@ function theme_jplayer_field($variables) {
   // Add player settings.
   $playerInstance = array(
     'jplayerInstances' => array(
-      $element['player_id'] => array(
+      $element['#player_id'] => array(
         'files' => $player['files'],
         'mode' => $element['#settings']['mode'],
         'skin' => $element['#settings']['skin'],
@@ -146,7 +146,12 @@ function theme_jplayer_field($variables) {
       ),
     ),
   );
-  drupal_add_js($playerInstance, 'setting');
+
+  //drupal_add_js($playerInstance, 'setting');
+  $output['instance']['#attached']['js'][] = array(
+    'data' => $playerInstance,
+    'type' => 'setting',
+  );
 
   $commonfiles = _jplayer_js_attach($element['skin']);
   if (!empty($commonfiles)) {
@@ -166,8 +171,8 @@ function theme_jplayer_field($variables) {
   $location = _jplayer_get_skin_property($skin, 'location');
   $cssfiles = _jplayer_get_skin_property($skin, 'css');
 
-  dpm($element);
-  dpm($playerInstance);
+//  dpm($element);
+//  dpm($playerInstance);
 
   // Attach the CSS files required by the skin. Normally, just use 1 file!
   // TODO: ensure only one copy of each file per page.
@@ -201,6 +206,7 @@ function theme_jplayer_field($variables) {
       '#markup' => $content,
     );
   }
+
   return drupal_render($output);
 }
 
@@ -618,12 +624,10 @@ function _jplayer_check_id($id) {
 
   // Store a count of the number of times a unique ID is used, and make it
   // unique if needed.
-  if (isset($player_ids[$id])) {
-    $id = $id . '-' . $player_ids[$id]++;
+  if (!isset($player_ids[$id])) {
+    $player_ids[$id] = 1;
   }
-  else {
-    $player_ids[$id] = 0;
-  }
+  $id = $id . '-' . $player_ids[$id]++;
 
   return $id;
 }

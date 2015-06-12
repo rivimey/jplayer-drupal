@@ -4,9 +4,14 @@
  * Provide the HTML output for an audio jPlayer interface.
  */
 ?>
+<div id="<?php print $player_id; ?>" class="jp-jplayer"></div>
 <div class="jp-audio" role="application" aria-label="media player">
-  <div class="jp-type-playlist">
-    <div id="<?php print $player_id; ?>" class="jp-jplayer"></div>
+  <?php
+  /* Module jplayer.js relies on the parent of the node having
+   * class jp-jplayer having class jp-type-single or jp-type-playlist.
+   * The node having class jp-player must also have the player id.
+   */ ?>
+  <div class="jp-type-<?php print $mode; ?>">
     <div class="jp-gui jp-interface">
       <div class="jp-volume-controls">
         <button class="jp-mute" role="button" tabindex="0">mute</button>

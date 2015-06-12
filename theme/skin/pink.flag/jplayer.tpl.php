@@ -65,4 +65,3 @@
     </div>
   </div>
 </div>
-<?php print drupal_render($dynamic); /* jPlayer JS attach */ ?>

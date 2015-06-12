@@ -48,7 +48,11 @@ function jplayer_library() {
     'website' => 'http://www.jplayer.org',
     'version' => $version,
     'js' => array(
-      $file => array(),
+      $file => array(
+        'type'  => 'file',
+        'scope' => 'footer',
+        'group' => JS_LIBRARY,
+      ),
     ),
   );
   return $libraries;
@@ -445,9 +449,9 @@ function _jplayer_get_css($skin) {
  *   Full file path or FALSE on failure.
  */
 function _jplayer_get_js() {
-  $path = libraries_get_path('jplayer');
+  $path = libraries_get_path('jplayer', FALSE);
   $player_files = array(
-    'min'   => '/jquery.jplayer.min.js',
+    #'min'   => '/jquery.jplayer.min.js',
     'full'  => '/jquery.jplayer.js',
   );
 

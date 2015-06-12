@@ -132,7 +132,7 @@ class jplayer_style_plugin extends views_plugin_style {
       }
     }
 
-    $output = theme('jplayer_view_playlist', array('view' => $view, 'items' => $items));
+    $output = theme('jplayer_field', array('view' => $view, 'items' => $items));
 
     // If doing a live preview, add the JavaScript directly to the output.
     if (isset($view->live_preview) && $view->live_preview) {
