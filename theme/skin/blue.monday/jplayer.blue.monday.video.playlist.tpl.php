@@ -4,14 +4,14 @@
  * Provide the HTML output for an video jPlayer interface.
  */
 ?>
-<div class="jp-video" role="application" aria-label="media player">
+<div id="<?php print $player_id; ?>" class="jp-type-<?php print $mode; ?>" data-type="jp-video"  data-mode="jp-type-playlist" role="application" aria-label="media player">
   <?php
   /* Module jplayer.js relies on the parent of the node having
    * class jp-player having class jp-type-single or jp-type-playlist.
    * The node having class jp-player must also have the player id.
    */ ?>
   <div class="jp-type-<?php print $mode; ?>">
-    <div id="<?php print $player_id; ?>" class="jp-jplayer"></div>
+    <div class="jp-jplayer"></div>
     <div class="jp-gui">
       <div class="jp-video-play">
         <button class="jp-video-play-icon" role="button" tabindex="0">play</button>
