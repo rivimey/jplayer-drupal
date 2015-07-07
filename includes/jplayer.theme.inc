@@ -121,10 +121,17 @@ function theme_jplayer_field($variables) {
   $player_id = 'jplayer-' . $element['#entity_type'] . '-' . $ids[0] . '-' . $css_field_name;
   $element['#player_id'] = _jplayer_check_id($player_id);
 
-  // Get the field info so we can figure out what type it is.
+  // Get the field info so we can tell files from text.
   $field_info = field_info_field($element['#field_name']);
-  $player = jplayer_sort_files($element['#items'], $element['player_id'], $element['#settings']['mode'], $field_info['type']);
+  $player = jplayer_sort_files('field',
+                               $element['#items'],
+                               $element['#settings']['mode'],
+                               $field_info['type']);
 
+  if ($player['duplicate']) {
+    watchdog('jplayer', 'Duplicate file extension(s) found in media list: @items',
+             array('@items' => $element['#items']), WATCHDOG_WARNING);
+  }
   $output = array();
 
   // Add player settings.
@@ -135,7 +142,7 @@ function theme_jplayer_field($variables) {
         'mode' => $element['#settings']['mode'],
         'skin' => $element['#settings']['skin'],
         'solution' => $element['#settings']['solution'],
-        'supplied' => $player['extensions'],
+        'supplied' => $player['supplied'],
         'preload' => $element['#settings']['preload'],
         'volume' => $element['#settings']['volume'] / 100,
         'muted' => (boolean) $element['#settings']['muted'],
@@ -177,7 +184,7 @@ function theme_jplayer_field($variables) {
   // Attach the CSS files required by the skin. Normally, just use 1 file!
   // TODO: ensure only one copy of each file per page.
   $css_opts = array(
-    'type'  => 'file',
+    'type' => 'file',
     'group' => CSS_DEFAULT,
   );
   $css_attached = array();
@@ -200,7 +207,7 @@ function theme_jplayer_field($variables) {
   $tplfile = $templates[$player['type']][0];
   $tpl = $location . '/' . $tplfile;
   if (!empty($tplfile) && file_exists($tpl)) {
-    $content =  theme_render_template($tpl, $item_variables);
+    $content = theme_render_template($tpl, $item_variables);
     $output['skin'] = array(
       '#type' => 'markup',
       '#markup' => $content,
@@ -273,11 +280,11 @@ function theme_jplayer_item_list($variables) {
       if (count($children) > 0) {
         // Render nested list.
         $data .= theme_item_list(array(
-          'items' => $children,
-          'title' => NULL,
-          'type' => $type,
-          'attributes' => $item_attributes,
-        ));
+                                   'items' => $children,
+                                   'title' => NULL,
+                                   'type' => $type,
+                                   'attributes' => $item_attributes,
+                                 ));
       }
       if ($i == 0) {
         $item_attributes['class'][] = 'first jp-playlist-first';
@@ -296,50 +303,45 @@ function theme_jplayer_item_list($variables) {
 /**
  * Filters an array of files into groups ready for jPlayer.
  *
+ * @param string $context
+ *   How to treat multiple files:
+ *     'field' -> multiple files are alternate formats of one item.
+ *     'list' -> multiple files are separate items.
+ *   This indicates the data source.
  * @param array $raw_files
  *   An array of files to be included.
- * @param int $player_id
- *   A unique id for the player.
  * @param string $player_mode
- *   Either 'single' or 'playlist'. In single mode, at most one file is playable.
+ *   Either 'single' or 'playlist'. This value comes from the field settings.
  * @param string $item_type
  *   The field type for the files.
  *
  * @return array
  *   a settings array of data being passed to jPlayer instance
  */
-function jplayer_sort_files($raw_files = array(), $player_id = 0, $player_mode = 'single', $item_type = 'file') {
+function jplayer_sort_files($context, $raw_files, $player_mode, $item_type) {
 
-  $seen_type = array(
-    'audio' => FALSE,
-    'video' => FALSE,
-    'poster_url' => NULL,
-  );
+  $seen = array();
 
   // Look through all the files provided and see what we have.
   $media = array();
-  foreach ($raw_files as $delta => $item) {
+  foreach ($raw_files as $item) {
 
     // Fill in any missing information.
     $item['url'] = _jplayer_get_item_url($item_type, $item);
     $item['label'] = _jplayer_get_field_label($item_type, $item);
 
     // Categorise the item.
-    $item = _jplayer_group_items_by_type($item, $seen_type);
+    $item = _jplayer_categorise_items($item, $seen);
 
     $media[] = $item;
   }
 
-  $player_type = _jplayer_get_player_type($seen_type);
+  // Use seen_type to determine audio or video player.
+  $player_type = _jplayer_get_player_type($seen);
 
-  $result = _jplayer_make_playlist($player_id, $media, $player_mode, $player_type, $seen_type['poster_url']);
+  $result = _jplayer_make_playlist($media, $player_mode, $player_type);
 
-  // Enforce 'single' players by returning only the first item.
-//  if ($player_mode == 'single') {
-//    $item = array_shift($result['playlist']);
-//    $result['playlist'] = array();
-//    $result['playlist'][] = $item;
-//  }
+  $result['supplied'] = implode(', ', array_keys($seen['exts']));
 
   return $result;
 }
@@ -351,73 +353,46 @@ function jplayer_sort_files($raw_files = array(), $player_id = 0, $player_mode =
  * list has an entry for the name of the file, a formatted html link to the
  * file, and the file extension (proxy for file type).
  *
- * @param string $player_id
- *   The player ID, a CSS value to differentiate multiple players on a page.
  * @param string $player_mode
  *   Either 'single' or 'playlist', defining whether multiple files are displayed.
  * @param array $media
  *   The files to be included in the playlist, an array of file-description arrays.
  * @param string $player_type
- *   The selected player type: audio or video.
- * @param string $poster_url
- *   The url of a poster image, or NULL if none seen. Used if a video player is
- *   selected.
+ *   The selected player type: 'audio' or 'video'.
  *
  * @return array
- *   An array of 4 values:
+ *   An array of 3 values:
  *   'files': an array, itself keyed by extension, of the url of each file.
- *   'extensions': a comma-separated string of all the in-use file extensions.
- *   'playlist': an array, one per file, of l() links for the files.
+ *   'duplicate': true if more than one url mapped to an extension.
  *   'type': the value of $player_type.
  */
-function _jplayer_make_playlist($player_id, $media, $player_mode, $player_type, $poster_url) {
-  $options = array(
-    'fragment' => '',
-    'attributes' => array(
-      'id' => 'player_id_item_0', // placeholder
-      'tabindex' => 1,
-      'onclick' => 'return(false);',
-    ),
-  );
+function _jplayer_make_playlist($media, $player_mode, $player_type) {
 
-  $num = 0;
+  $duplicate = FALSE;
   $files = array();
-  $extensions = array();
-  $playlist = array();
-  foreach ($media as $file) {
-    // Give video files priority for 'single' mode.
-    if ($file['type'] == 'audio' && $player_type == 'video' && $player_mode == 'single') {
-      continue; // ignore this file...
+
+  if ($player_mode == 'single') {
+    // In single mode, all files are in the first playlist slot.
+    foreach ($media as $file) {
+      $ext = $file['ext'];
+      if (isset($files[0][$ext])) $duplicate = TRUE;
+      $files[0][$ext] = $file['url'];
     }
-
-    // Combine player id and file index to make a unique id.
-    $options['attributes']['id'] = $player_id . '_item_' . $num;
-
-    switch ($file['type']) {
-      case 'audio':
-        $files[][$file['ext']] = $file['url'];
-        $extensions[] = $file['ext'];
-        $playlist[] = l($file['label'], $file['url'], $options);
-        $num++;
-        break;
-
-      case 'video':
-        $files[][$file['ext']] = $file['url'];
-        if ($poster_url['poster_url']) {
-          $files[]['poster'] = $poster_url;
-        }
-        $extensions[] = $file['ext'];
-        $playlist[] = l($file['label'], $file['url'], $options);
-        $num++;
-        break;
+  }
+  else {
+    // In playlist mode, files are separated into multiple slots.
+    $num = 0;
+    foreach ($media as $file) {
+      $ext = $file['ext'];
+      $files[$num][$ext] = $file['url'];
+      $num++;
     }
   }
 
   $result = array(
     'files' => $files,
-    'extensions' => implode(',', $extensions),
-    'playlist' => $playlist,
     'type' => $player_type,
+    'duplicate' => $duplicate,
   );
 
   return $result;
@@ -426,7 +401,7 @@ function _jplayer_make_playlist($player_id, $media, $player_mode, $player_type, 
 /**
  * Return the type of player (audio, video) we will be creating.
  *
- * @param $seen_type
+ * @param $seen
  *   An array recording which file types have been seen in the item list. Keys:
  *    - audio: set TRUE if audio files are present in the list
  *    - video: set TRUE if audio files are present in the list
@@ -437,19 +412,15 @@ function _jplayer_make_playlist($player_id, $media, $player_mode, $player_type, 
  *   audio files), otherwise 'audio' if audio files are present, otherwise
  *   Null if no recognised media files present.
  */
-function _jplayer_get_player_type($seen_type) {
+function _jplayer_get_player_type($seen) {
   $player_type = NULL;
 
   // if there are videos, we need a video player
-  if ($seen_type['video']) {
-    // Original player has:
-    //   $player_type = 'video jp-video-360p';
-    // TODO: where does 360p come from and why is the type not a single word?
-
+  if ($seen['type']['video']) {
     $player_type = 'video';
   }
   // no videos, so we just want an audio player
-  elseif ($seen_type['audio']) {
+  elseif ($seen['type']['audio']) {
     $player_type = 'audio';
   }
 
@@ -501,7 +472,7 @@ function _jplayer_get_item_url($item_type, $item) {
  *
  * @param $item
  *   The item being inspected.
- * @param $seen_type
+ * @param $seen
  *   Array recording the types of item seen over multiple calls. Keys:
  *    - audio: set TRUE if audio files are present in the list
  *    - video: set TRUE if audio files are present in the list
@@ -510,51 +481,63 @@ function _jplayer_get_item_url($item_type, $item) {
  * @return array
  *   The returned item, with 'ext' and 'type' set if needed.
  */
-function _jplayer_group_items_by_type($item, &$seen_type) {
-  $video_extensions = array('m4v', 'mp4', 'ogv', 'ogm', 'webmv');
-  $audio_extensions = array('mp3', 'm4a', 'oga', 'webma', 'wav', 'ogg');
-  $poster_extensions = array('jpg', 'jpeg', 'png', 'gif');
+function _jplayer_categorise_items($item, &$seen) {
+  $extensions = array(
+    'video' => array('m4v', 'mp4', 'ogv', 'ogm', 'webmv'),
+    'audio' => array('mp3', 'm4a', 'oga', 'webma', 'wav', 'ogg'),
+    'poster' => array('jpg', 'jpeg', 'png', 'gif'),
+  );
 
-  // TODO: Include HOOK here to enable the extensions lists to be modified?
+  // Let other modules adjust the known file types.
+  drupal_alter('jplayer_filetypes', $extensions);
 
   // Get file extension from pathinfo or link_field title-attribute
-  if (!isset($item['ext'])) {
-    $fileinfo = pathinfo($item['url']);
+  if (empty($item['ext'])) {
     // If the path does not have an extension, no extension element will be
     // returned (see http://php.net/manual/en/function.pathinfo.php)
-    if (isset($item['attributes']['title']) && !isset($fileinfo['extension'])) {
-      $item['ext'] = $item['attributes']['title'];
-    }
-    elseif (isset($item['attributes']['title']) &&
-      !in_array($fileinfo['extension'], $audio_extensions) &&
-      !in_array($fileinfo['extension'], $video_extensions) &&
-      !in_array($fileinfo['extension'], $poster_extensions)) {
+    $fileinfo = pathinfo($item['uri']);
 
+    // If there is no extension but a title attribute, and that is a known
+    // extension, then use that.
+    if (!empty($item['attributes']['title']) &&
+      (in_array($item['attributes']['title'], $extensions['audio']) ||
+        in_array($item['attributes']['title'], $extensions['video']) ||
+        in_array($item['attributes']['title'], $extensions['poster']))
+    ) {
       $item['ext'] = $item['attributes']['title'];
     }
-    else {
+    elseif (!empty($fileinfo['extension'])) {
       $item['ext'] = $fileinfo['extension'];
     }
   }
 
-  // Assign the file into one of the groups.
-  if (!isset($item['type'])) {
-    $ext = strtolower($item['ext']);
-    if (in_array($ext, $video_extensions)) {
-      $seen_type['video'] = TRUE;
-      $item['type'] = 'video';
-    }
-    elseif (in_array($ext, $audio_extensions)) {
-      $seen_type['audio'] = TRUE;
-      $item['type'] = 'audio';
-    }
-    elseif (in_array($ext, $poster_extensions)) {
-      // poster is used iff a video player is used, and we need
-      // the file url.
-      $seen_type['poster_url'] = $item['url'];
-      $item['type'] = 'poster';
+  // We can't proceed without a file type...
+  if (!empty($item['ext'])) {
+    // Collect the types seen for use in a 'supplied' object.
+
+    // Assign the file into one of the groups.
+    if (!isset($item['type'])) {
+      $ext = strtolower($item['ext']);
+      if (in_array($ext, $extensions['video'])) {
+        $seen['exts'][$ext] = 1;
+        $seen['type']['video'] = TRUE;
+        $item['type'] = 'video';
+      }
+      elseif (in_array($ext, $extensions['audio'])) {
+        $seen['exts'][$ext] = 1;
+        $seen['type']['audio'] = TRUE;
+        $item['type'] = 'audio';
+      }
+      elseif (in_array($ext, $extensions['poster'])) {
+        // poster is used iff a video player is used, and we need
+        // the file url.
+        $seen['exts'][$ext] = 1;
+        $seen['type']['poster_url'] = $item['url'];
+        $item['type'] = 'poster';
+      }
     }
   }
+
   return $item;
 }
 
