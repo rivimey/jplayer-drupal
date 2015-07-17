@@ -26,6 +26,16 @@ function jplayer_menu() {
 }
 
 /**
+ * Implements hook_ctools_plugin_type().
+ */
+function jplayer_ctools_plugin_type() {
+  $plugins['my_type'] = array(
+    'load themes' => TRUE,
+  );
+
+  return $plugins;
+}
+/**
  * Implements hook_views_api().
  */
 function jplayer_views_api() {
