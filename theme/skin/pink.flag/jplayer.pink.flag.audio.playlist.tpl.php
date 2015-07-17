@@ -4,7 +4,7 @@
  * Provide the HTML output for an audio jPlayer interface.
  */
 ?>
-<div id="<?php print $player_id; ?>" class="jp-type-<?php print $mode; ?>" data-type="jp-audio" data-mode="jp-type-<?php print $mode; ?>" role="application" aria-label="media player">
+<div id="<?php print $player_id; ?>" class="jp-audio jp-type-<?php print $mode; ?>" data-type="jp-audio" data-mode="jp-type-<?php print $mode; ?>" role="application" aria-label="media player">
   <div class="jp-jplayer"></div>
   <div class="jp-gui jp-interface">
     <div class="jp-volume-controls">

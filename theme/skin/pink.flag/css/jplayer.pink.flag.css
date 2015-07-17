@@ -37,7 +37,8 @@
   border-left: 1px solid #554461;
   border-right: 1px solid #180a1f;
   border-bottom: 1px solid #180a1f;
-  background-color: #483456; }
+  background-color: #3a2b44;
+}
 
 .jp-audio {
   width: 201px;
@@ -52,6 +53,10 @@
 
 .jp-video-360p {
   width: 640px; }
+
+.jp-video-480p {
+  width: 720px;
+}
 
 .jp-video-full {
   /* Rules for IE6 (full-screen) */
@@ -93,7 +98,7 @@
 
 .jp-interface {
   position: relative;
-  width: 100%;
+  width: 201px;
   background-color: #3a2a45;
   /* Required for the full screen */ }
 
