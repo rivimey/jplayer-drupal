@@ -27,14 +27,30 @@ function jplayer_menu() {
 
 /**
  * Implements hook_ctools_plugin_type().
+ *
+ * Define the plugin types defined by jplayer.
+ *
+ * @return array
+ *  An array of plugin types, keyed by the type name.
  */
 function jplayer_ctools_plugin_type() {
-  $plugins['my_type'] = array(
-    'load themes' => TRUE,
+  $plugins['jplayer_skin'] = array(
+    'cache' => TRUE,
   );
 
   return $plugins;
 }
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function jplayer_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'jplayer' && $plugin_type == 'jplayer_skin') {
+    return 'plugins/jplayer_skin';
+  }
+  return NULL;
+}
+
 /**
  * Implements hook_views_api().
  */
@@ -59,7 +75,7 @@ function jplayer_library() {
     'version' => $version,
     'js' => array(
       $file => array(
-        'type'  => 'file',
+        'type' => 'file',
         'scope' => 'footer',
         'group' => JS_LIBRARY,
       ),
@@ -372,16 +388,16 @@ function _jplayer_js_attach($skin) {
   // Add global settings.
   $settings = array(
     'jPlayer' => array(
-      'swfPath'   => _jplayer_get_swf(),
-      'showHour'  => (boolean) variable_get('jplayer_showHour', FALSE),
-      'showMin'   => (boolean) variable_get('jplayer_showMin', TRUE),
-      'showSec'   => (boolean) variable_get('jplayer_showSec', TRUE),
-      'padHour'   => (boolean) variable_get('jplayer_padHour', FALSE),
-      'padMin'    => (boolean) variable_get('jplayer_padMin', TRUE),
-      'padSec'    => (boolean) variable_get('jplayer_padSec', TRUE),
-      'sepHour'   => variable_get('jplayer_sepHour', ':'),
-      'sepMin'    => variable_get('jplayer_sepMin', ':'),
-      'sepSec'    => variable_get('jplayer_sepSec', ''),
+      'swfPath' => _jplayer_get_swf(),
+      'showHour' => (boolean) variable_get('jplayer_showHour', FALSE),
+      'showMin' => (boolean) variable_get('jplayer_showMin', TRUE),
+      'showSec' => (boolean) variable_get('jplayer_showSec', TRUE),
+      'padHour' => (boolean) variable_get('jplayer_padHour', FALSE),
+      'padMin' => (boolean) variable_get('jplayer_padMin', TRUE),
+      'padSec' => (boolean) variable_get('jplayer_padSec', TRUE),
+      'sepHour' => variable_get('jplayer_sepHour', ':'),
+      'sepMin' => variable_get('jplayer_sepMin', ':'),
+      'sepSec' => variable_get('jplayer_sepSec', ''),
     ),
   );
   drupal_add_js($settings, array('type' => 'setting'));
@@ -396,7 +412,7 @@ function _jplayer_js_attach($skin) {
       // Drupal specific JS.
       'js' => array(
         $path . '/theme/jplayer.js' => array(
-          'type'  => 'file',
+          'type' => 'file',
           'scope' => 'footer',
           'group' => JS_DEFAULT,
         ),
@@ -408,7 +424,7 @@ function _jplayer_js_attach($skin) {
 
   // Allow other modules to add resources to the page when a jPlayer is
   // embedded.
-  if ($additional_resources = module_invoke_all('jplayer_add_js')) {
+  if ($additional_resources = module_invoke_all('jplayer_add_resource', $return)) {
     $return['additional_resources'] = $additional_resources;
   }
 
@@ -430,7 +446,7 @@ function _jplayer_js_attach($skin) {
 function _jplayer_get_css($skin) {
   $return = array();
   $opts = array(
-    'type'  => 'file',
+    'type' => 'file',
     'group' => CSS_DEFAULT,
   );
 
@@ -462,7 +478,7 @@ function _jplayer_get_js() {
   $path = libraries_get_path('jplayer', FALSE);
   $player_files = array(
     #'min'   => '/jquery.jplayer.min.js',
-    'full'  => '/jquery.jplayer.js',
+    'full' => '/jquery.jplayer.js',
   );
 
   // Check main library directory.
@@ -505,6 +521,17 @@ function _jplayer_get_swf() {
 }
 
 /**
+ *
+ *
+ * @return array
+ */
+function _jplayer_get_skin_plugins() {
+  ctools_include('plugins');
+  $skin_plugins = ctools_get_plugins('jplayer', 'jplayer_skin');
+  return $skin_plugins;
+}
+
+/**
  * Retrieve a given skin property.
  *
  * @param $skin
@@ -512,9 +539,12 @@ function _jplayer_get_swf() {
  * @return mixed
  */
 function _jplayer_get_skin_property($skin, $property) {
-  $props = _jplayer_known_skins();
-  $skinprops = $props[$skin];
+  $properties = &drupal_static(__FUNCTION__);
+  if (!isset($properties)) {
+    $properties = _jplayer_known_skins();
+  }
 
+  $skinprops = $properties[$skin];
   return $skinprops[$property];
 }
 
@@ -525,6 +555,19 @@ function _jplayer_get_skin_property($skin, $property) {
  *  Array of arrays describing available skins.
  */
 function _jplayer_known_skins() {
+  $skins = array();
+  $plugins = _jplayer_get_skin_plugins();
+  foreach($plugins as $plugin) {
+    $func = ctools_plugin_get_function($plugin, 'skin definition');
+    if (is_callable($func)) {
+      $skins = $skins + $func();
+    }
+  }
+  return $skins;
+}
+
+
+function OLD_jplayer_known_skins() {
   $path = drupal_get_path('module', 'jplayer');
 
   $skins = array(
@@ -564,15 +607,41 @@ function _jplayer_known_skins() {
       ),
       // Array of css files to be included.
       'css' => array(
-        'css/jplayer.pink.flag.min.css',
+        'css/jplayer.blue.flag.min.css',
       ),
-      // this theme uses three varieties of theme to cover the modes.
+      // this theme uses varieties of theme to cover the modes.
       'theme' => array(
         'audio-single' => 'jplayer_pinkflag_audio_single',
         'audio-playlist' => 'jplayer_pinkflag_audio_playlist',
         'audio-stream' => 'jplayer_pinkflag_audio_single',
         'video-single' => 'jplayer_pinkflag',
         'video-playlist' => 'jplayer_pinkflag',
+      ),
+    ),
+    
+    'blueflag' => array(
+      'label' => t('Blue Flag'),
+      'description' => t('Modified Pink Flag jPlayer skin, a blue and torquise square arrangement.'),
+      'location' => $path . '/theme/skin/blue.flag',
+      'templates' => array(
+        'audio' => array(
+          'jplayer.blue.flag.audio.playlist.tpl.php',
+        ),
+        'video' => array(
+          'jplayer.blue.flag.video.playlist.tpl.php',
+        ),
+      ),
+      // Array of css files to be included.
+      'css' => array(
+        'css/jplayer.blue.flag.min.css',
+      ),
+      // this theme uses three varieties of theme to cover the modes.
+      'theme' => array(
+        'audio-single' => 'jplayer_blueflag_audio_single',
+        'audio-playlist' => 'jplayer_blueflag_audio_playlist',
+        'audio-stream' => 'jplayer_blueflag_audio_single',
+        'video-single' => 'jplayer_blueflag',
+        'video-playlist' => 'jplayer_blueflag',
       ),
     )
   );
