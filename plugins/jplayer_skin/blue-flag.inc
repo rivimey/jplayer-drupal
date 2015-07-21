@@ -16,14 +16,21 @@ $plugin = array(
 );
 
 /**
+ * Return information about the blue flag skin.
  *
+ * @param array $plugin
+ *   The ctools plugin array for this plugin - useful for the path entry.
+ * @return array
+ *   An array containing a key-value machine name - info mapping.
+ *
+ * @see jplayer.api.php for details of the array returned here.
  */
-function jplayerskin_blue_flag_info() {
+function jplayerskin_blue_flag_info(array $plugin) {
   $skin = array(
     'blueflag' => array(
       'label' => t('Blue Flag'),
       'description' => t('Modified Pink Flag jPlayer skin, a blue and torquise square arrangement.'),
-      'location' => $path . '/theme/skin/blue.flag',
+      'location' => $plugin['path'] . '/blue.flag',
       'templates' => array(
         'audio' => array(
           'jplayer.blue.flag.audio.playlist.tpl.php',

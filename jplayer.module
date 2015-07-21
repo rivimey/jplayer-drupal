@@ -544,8 +544,8 @@ function _jplayer_get_skin_property($skin, $property) {
     $properties = _jplayer_known_skins();
   }
 
-  $skinprops = $properties[$skin];
-  return $skinprops[$property];
+  $skin_properties = $properties[$skin];
+  return $skin_properties[$property];
 }
 
 /**
@@ -560,7 +560,7 @@ function _jplayer_known_skins() {
   foreach($plugins as $plugin) {
     $func = ctools_plugin_get_function($plugin, 'skin definition');
     if (is_callable($func)) {
-      $skins = $skins + $func();
+      $skins = $skins + $func($plugin);
     }
   }
   return $skins;

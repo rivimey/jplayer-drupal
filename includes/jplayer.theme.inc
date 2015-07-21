@@ -5,103 +5,6 @@
  */
 
 /**
- * Preprocess function for a player.tpl.php when displaying a node.
- *
- * @param array $vars
- *   Preprocess variables.
- * @throws \Exception
- *   Calls code that calls theme(), which can throw an Exception().
- */
-function OLD_template_preprocess_jplayer(&$vars) {
-  // Determine a unique player ID.
-  $ids = entity_extract_ids($vars['entity_type'], $vars['entity']);
-
-  // TODO: should use drupal's drupal_html_class here instead?
-  $css_field_name = str_replace('_', '-', $vars['field_name']);
-  $player_id = 'jplayer-' . $vars['entity_type'] . '-' . $ids[0] . '-' . $css_field_name;
-  $vars['player_id'] = _jplayer_check_id($player_id);
-
-  // Get the field info so we can figure out what type it is.
-  $field_info = field_info_field($vars['field_name']);
-  $player = jplayer_sort_files($vars['items'], $vars['player_id'], $vars['mode'], $field_info['type']);
-
-  _jplayer_preprocess_template_common($player, $vars);
-}
-
-/**
- * Preprocess function for jplayer.tpl.php when displaying a view.
- *
- * @param array $vars
- *   Variable array.
- * @throws \Exception
- *   Calls code that calls theme(), which can throw an Exception().
- */
-function OLD_template_preprocess_jplayer_view_playlist(&$vars) {
-  $view = $vars['view'];
-  $vars['settings'] = $view->style_plugin->options;
-
-  // Code originally set playlist like this, which seems odd:
-  // $vars['mode'] = 'playlist';
-
-  // TODO: should use drupal's drupal_html_class here instead?
-  $player_id = 'jplayer-view-' . str_replace('_', '-', check_plain($view->name));
-  $vars['player_id'] = _jplayer_check_id($player_id);
-
-  $player = jplayer_sort_files($vars['items'], $vars['player_id'], $vars['settings']['mode']);
-
-  _jplayer_preprocess_template_common($player, $vars);
-}
-
-/**
- * The backend of the jplayer preprocess field hooks.
- *
- * Call theme on the playlist, set up the javascript settings needed by the
- * player, and attach the jplayer javascript and CSS files.
- *
- * @param $player
- *   The player array created by jplayer_sort_files().
- * @param $vars
- *   Preprocess hook theme variables.
- * @throws \Exception
- *   Calls theme(), which can throw an Exception().
- */
-function _jplayer_preprocess_template_common($player, &$vars) {
-  $vars['mode'] = $vars['settings']['mode'];
-  $vars['skin'] = $vars['settings']['skin'];
-  $vars['type'] = $player['type'];
-
-  $variables = array(
-    'items' => $player['playlist'],
-    'skin' => $vars['skin'],
-    'mode' => $vars['mode'],
-  );
-  $vars['playlist'] = theme('jplayer_item_list', $variables);
-
-  // Add player settings.
-  $player = array(
-    'jplayerInstances' => array(
-      $vars['player_id'] => array(
-        'files' => $player['files'],
-        'mode' => $vars['settings']['mode'],
-        'skin' => $vars['settings']['skin'],
-        'solution' => $vars['settings']['solution'],
-        'supplied' => $player['extensions'],
-        'preload' => $vars['settings']['preload'],
-        'volume' => $vars['settings']['volume'] / 100,
-        'muted' => (boolean) $vars['settings']['muted'],
-        'autoplay' => (boolean) $vars['settings']['autoplay'],
-        'repeat' => $vars['settings']['repeat'],
-        'backgroundColor' => $vars['settings']['backgroundColor'],
-        'continuous' => $vars['settings']['continuous'],
-      ),
-    ),
-  );
-  drupal_add_js($player, 'setting');
-
-  $vars['dynamic'] = _jplayer_js_attach($vars['skin']);
-}
-
-/**
  * Implements theme_HOOK().
  *
  * Wrapper theme code for jplayer.
@@ -116,9 +19,11 @@ function theme_jplayer_field($variables) {
   $element = $variables['element'];
   $ids = entity_extract_ids($element['#entity_type'], $element['#entity']);
 
-  // TODO: should use drupal's drupal_html_class here instead?
-  $css_field_name = str_replace('_', '-', $element['#field_name']);
-  $player_id = 'jplayer-' . $element['#entity_type'] . '-' . $ids[0] . '-' . $css_field_name;
+  $player_id = 'jplayer-' .
+    drupal_html_class($element['#entity_type']) . '-' .
+    drupal_html_class($ids[0]) . '-' .
+    drupal_html_class($element['#field_name']);
+
   $element['#player_id'] = _jplayer_check_id($player_id);
 
   // Get the field info so we can tell files from text.
@@ -154,7 +59,6 @@ function theme_jplayer_field($variables) {
     ),
   );
 
-  //drupal_add_js($playerInstance, 'setting');
   $output['instance']['#attached']['js'][] = array(
     'data' => $playerInstance,
     'type' => 'setting',
@@ -173,16 +77,39 @@ function theme_jplayer_field($variables) {
   );
   $item_variables['playlist'] = theme('jplayer_item_list', $item_variables);
 
+  $templ_file = NULL;
+  $theme_func = NULL;
   $skin = $element['#settings']['skin'];
-  $templates = _jplayer_get_skin_property($skin, 'templates');
+
   $location = _jplayer_get_skin_property($skin, 'location');
+  $templates = _jplayer_get_skin_property($skin, 'templates');
+  $themes = _jplayer_get_skin_property($skin, 'theme');
+  if (!empty($templates)) {
+    $templ_file = _jplayer_select_output($templates, $player['type'], $element['#settings']['mode']);
+
+    // Find and read the html for the skin.
+    $templ_path = $location . '/' . $templ_file;
+    if (!empty($templ_file) && file_exists($templ_path)) {
+      $content = theme_render_template($templ_path, $item_variables);
+      $output['skin'] = array(
+        '#type' => 'markup',
+        '#markup' => $content,
+      );
+    }
+  }
+  elseif (!empty($themes)) {
+    $theme_func = _jplayer_select_output($themes, $player['type'], $element['#settings']['mode']);
+
+//    TODO Fix this: Use theme function...
+//    $content = $theme_func($item_variables);
+//    $output['skin'] = array(
+//      '#type' => 'markup',
+//      '#markup' => $content,
+//    );
+  }
+
   $cssfiles = _jplayer_get_skin_property($skin, 'css');
-
-//  dpm($element);
-//  dpm($playerInstance);
-
   // Attach the CSS files required by the skin. Normally, just use 1 file!
-  // TODO: ensure only one copy of each file per page.
   $css_opts = array(
     'type' => 'file',
     'group' => CSS_DEFAULT,
@@ -200,17 +127,6 @@ function theme_jplayer_field($variables) {
         // CSS of skin.
         'css' => $css_attached,
       ),
-    );
-  }
-
-  // Find and read the html for the skin.
-  $tplfile = $templates[$player['type']][0];
-  $tpl = $location . '/' . $tplfile;
-  if (!empty($tplfile) && file_exists($tpl)) {
-    $content = theme_render_template($tpl, $item_variables);
-    $output['skin'] = array(
-      '#type' => 'markup',
-      '#markup' => $content,
     );
   }
 
@@ -375,7 +291,9 @@ function _jplayer_make_playlist($media, $player_mode, $player_type) {
     // In single mode, all files are in the first playlist slot.
     foreach ($media as $file) {
       $ext = $file['ext'];
-      if (isset($files[0][$ext])) $duplicate = TRUE;
+      if (isset($files[0][$ext])) {
+        $duplicate = TRUE;
+      }
       $files[0][$ext] = $file['url'];
     }
   }
@@ -614,3 +532,71 @@ function _jplayer_check_id($id) {
 
   return $id;
 }
+
+/**
+ * Return the correct theme function or template file name, given the
+ * array provided by the skin and the player type and mode.
+ *
+ * For both template and theme keys, the skin can provide functionality
+ * in several ways:
+ *
+ * 1. A single file or a single function:
+ *    'templates' => 'template_for_video_and_audio_theming'
+ *    'theme' => 'function_for_video_and_audio_theming'
+ *
+ * 2. A file or a function split by player type:
+ *    'templates' => array(
+ *      'audio' => 'template_for_audio_theming',
+ *      'video' => 'template_for_video_theming',
+ *    )
+ *    'theme' => array(
+ *      'audio' => 'theme_for_audio_theming',
+ *      'video' => 'theme_for_video_theming',
+ *    )
+ *
+ * 3. A file or a function split by player type and player mode:
+ *    'templates' => array(
+ *      'audio' => array(
+ *        'single' => 'template_for_single_track_audio_theming'),
+ *        'playlist' => 'template_for_playlist_audio_theming'
+ *      ),
+ *      'video' => array(
+ *        'single' => 'template_for_single_track_video_theming'),
+ *        'playlist' => 'template_for_playlist_video_theming'
+ *      ),
+ *    )
+ *    'theme' => ... likewise ...
+ *
+ * @param string $type
+ *   The mode of the player -- either 'audio' or 'video'
+ * @param string $mode
+ *   The type of player -- 'single' or 'playlist' or (audio only) 'stream'
+ * @param array $items
+ *   Either the 'templates' or the 'themes' array from the skin definition.
+ *
+ * @return string
+ *   The theme or template name.
+ */
+function _jplayer_select_output($items, $type, $mode) {
+  if (is_string($items)) {
+    // if it's a function, then it should be a theme function.
+    if (is_executable($items)) {
+      return $items;
+    }
+    // otherwise lets assume it's a file.
+    return $items;
+  }
+  elseif (is_array($items)) {
+    if (isset($items[$type])) {
+      return _jplayer_select_output($items[$type], $type, $mode);
+    }
+    if (isset($items[$mode])) {
+      return _jplayer_select_output($items[$mode], $type, $mode);
+    }
+    if (isset($items[0])) {
+      return $items[0];
+    }
+  }
+  return NULL;
+}
+
