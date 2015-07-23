@@ -19,12 +19,12 @@ $plugin = array(
  * It's important to remember that $conf is optional here, because contexts
  * are not always created from the UI.
  */
-function jplayerskin_blue_monday_info() {
+function jplayerskin_blue_monday_info(array $plugin) {
   return array(
     'bluemonday' => array(
       'label' => t('Blue Monday'),
       'description' => t('Standard jPlayer skin, a blue and grey rectangular layout.'),
-      'location' => $path . '/theme/skin/blue.monday',
+      'location' => $plugin['path'] . '/blue.monday',
       // Template html by player mode.
       'templates' => array(
         'audio' => array(
@@ -38,8 +38,6 @@ function jplayerskin_blue_monday_info() {
       'css' => array(
         'css/jplayer.blue.monday.min.css',
       ),
-      // this theme copes with all varieties of player in one theme call.
-      'theme' => 'jplayer_bluemonday',
     ),
   );
 }

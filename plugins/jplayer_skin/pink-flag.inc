@@ -18,12 +18,12 @@ $plugin = array(
 /**
  *
  */
-function jplayerskin_pink_flag_info() {
+function jplayerskin_pink_flag_info(array $plugin) {
   $skin = array(
     'pinkflag' => array(
       'label' => t('Pink Flag'),
       'description' => t('Standard jPlayer skin, a pink and purple square arrangement.'),
-      'location' => $path . '/theme/skin/pink.flag',
+      'location' => $plugin['path'] . '/pink.flag',
       'templates' => array(
         'audio' => array(
           'jplayer.pink.flag.audio.playlist.tpl.php',
@@ -34,15 +34,7 @@ function jplayerskin_pink_flag_info() {
       ),
       // Array of css files to be included.
       'css' => array(
-        'css/jplayer.blue.flag.min.css',
-      ),
-      // this theme uses varieties of theme to cover the modes.
-      'theme' => array(
-        'audio-single' => 'jplayer_pinkflag_audio_single',
-        'audio-playlist' => 'jplayer_pinkflag_audio_playlist',
-        'audio-stream' => 'jplayer_pinkflag_audio_single',
-        'video-single' => 'jplayer_pinkflag',
-        'video-playlist' => 'jplayer_pinkflag',
+        'css/jplayer.pink.flag.min.css',
       ),
     ),
   );

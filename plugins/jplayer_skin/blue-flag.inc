@@ -43,14 +43,6 @@ function jplayerskin_blue_flag_info(array $plugin) {
       'css' => array(
         'css/jplayer.blue.flag.min.css',
       ),
-      // this theme uses three varieties of theme to cover the modes.
-      'theme' => array(
-        'audio-single' => 'jplayer_blueflag_audio_single',
-        'audio-playlist' => 'jplayer_blueflag_audio_playlist',
-        'audio-stream' => 'jplayer_blueflag_audio_single',
-        'video-single' => 'jplayer_blueflag',
-        'video-playlist' => 'jplayer_blueflag',
-      ),
     )
   );
   return $skin;
