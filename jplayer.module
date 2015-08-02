@@ -34,9 +34,7 @@ function jplayer_menu() {
  *  An array of plugin types, keyed by the type name.
  */
 function jplayer_ctools_plugin_type() {
-  $plugins['jplayer_skin'] = array(
-    'cache' => TRUE,
-  );
+  $plugins['jplayer_skin'] = array();
 
   return $plugins;
 }
