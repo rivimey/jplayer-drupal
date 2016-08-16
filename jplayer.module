@@ -136,7 +136,7 @@ function jplayer_field_formatter_info() {
         'autoplay' => 0,
         'continuous' => 0,
         'solution' => 'html, flash',
-        'preload' => 'metadata',
+        'preload' => 'none',
         'volume' => 80,
         'muted' => FALSE,
         'repeat' => 'none',
